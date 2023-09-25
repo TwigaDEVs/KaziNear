@@ -1,4 +1,4 @@
-near-Hambre-project
+KaziNear-project
 ==================
 
 This app was initialized with [create-near-app]
