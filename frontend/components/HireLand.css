@@ -1,0 +1,73 @@
+/*
+
+
+
+
+.h-header{
+    color: green;
+}
+.hire-btn{
+    background-color: green;
+    color: white !important;
+    
+}
+
+.imghire{
+    width: 100%;
+    height: 100%;
+}
+
+.btn-h{
+    color: white !important;
+}
+
+
+.expla p{
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: medium;
+    font-family: cursive;
+    color: green;
+    width: 100vh;
+}
+
+.hirecard{
+
+    margin-left: 50px;
+    margin-right: 50px;
+
+}
+
+
+
+@media only screen and (max-width:600px){ 
+
+    .card{
+        display: block;
+    }
+
+
+}*/
+
+.expla{
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 0;
+
+    
+}
+
+.expla p{
+    font-family: cursive;
+    color: green;
+}
+
+.cont{
+    color: brown;
+}
