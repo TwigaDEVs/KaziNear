@@ -1060,6 +1060,7 @@ mod tests {
 
         // Create a new dispute
         let dispute_id = 1;
+
         let dispute = Dispute {
             dispute_in_job_id: 1,
             dispute_id: dispute_id,
@@ -1248,6 +1249,7 @@ mod tests {
 
         // Create a new job
         let job_id = 1;
+        
         let mut job = ClientJobs {
             job_id: job_id,
             account_id: user.clone(),

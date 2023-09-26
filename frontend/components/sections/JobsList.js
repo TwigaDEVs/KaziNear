@@ -33,6 +33,8 @@ import {
 
 import { Link } from "react-router-dom";
 import Select from 'react-select';
+import { uploadToIPFS } from "~/Infura";
+import { utils } from 'near-api-js';
 
 function generateTo(JobId) {
   return {
@@ -78,12 +80,73 @@ function JobOwner(props) {
   );
 }
 
-function JobList() {
+function JobList({ isSignedIn, wallet ,contractId}) {
 
   const { isOpen, onOpen, onClose } = useDisclosure()
   
-  const initialRef = React.useRef(null)
-  const finalRef = React.useRef(null)
+  const initialRef = React.useRef(null);
+  const finalRef = React.useRef(null);
+
+  const [formData, setFormData] = useState({
+    job_id: 1,
+    account_id: wallet.accountId,
+    project_title: '',
+    project_description: '',
+    project_duration: '',
+    project_budget: 0,
+    skill_requirements: [],
+    images: [],
+    bid_available: true,
+  });
+
+
+  console.log(wallet.accountId)
+
+//   let mut job = ClientJobs {
+//     job_id: job_id,
+//     account_id: user.clone(),
+//     project_title: "Project 1".to_string(),
+//     project_description: "Description of Project 1".to_string(),
+//     project_duration: "1 month".to_string(),
+//     project_budget: 1000,
+//     skill_requirements: vec!["Skill 1".to_string(), "Skill 2".to_string()],
+//     images: vec!["Image 1".to_string(), "Image 2".to_string()],
+//     bid_available: true,
+// };
+
+
+  const [jobs,setJobs] = useState([]);
+	const [uiPleaseWait, setUiPleaseWait] = useState(true);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSkillChange = (selectedSkills) => {
+    setFormData({ ...formData, skill_requirements: selectedSkills });
+  };
+
+  // const handleSkillChange = (selectedSkills) => {
+  //   setFormData({ ...formData, skill_requirements: selectedSkills.map((skill) => skill.label) });
+  // };
+  
+
+  const OnChangeMFile = async (selectedFiles) => {
+    // Placeholder logic: Upload files to IPFS
+    const uploadedUrls = [];
+
+    for (const file of selectedFiles) {
+      const response = await uploadToIPFS(file); // Your actual IPFS upload function
+      uploadedUrls.push(response);
+    }
+
+    // Placeholder logic: Handle changes, such as updating URLs
+    console.log("Uploaded URLs:", uploadedUrls);
+    setFormData({ ...formData, images: uploadedUrls }); // Update the images array in formData
+  };
+
+
 
   const skillOptions = [
     { value: "html", label: "HTML" },
@@ -97,91 +160,150 @@ function JobList() {
     // Add more programming-related skills as needed
   ];
 
-  const [selectedSkills, setSelectedSkills] = useState([]);
+  // const [selectedSkills, setSelectedSkills] = useState([]);
 
-  const handleSkillChange = (selectedOptions) => {
-    setSelectedSkills(selectedOptions);
+  // const handleSkillChange = (selectedOptions) => {
+  //   setSelectedSkills(selectedOptions);
+  // };
+
+  const handleSubmit = async () => {
+    // Call the NEAR Protocol function to post the job
+    // await postJobToSmartContract(formData);
+    let send_p =parseFloat(formData.project_budget);
+
+		let st = send_p.toString();
+
+		console.log(st)
+		
+		const deposit = utils.format.parseNearAmount(st);
+    const skillLabels = formData.skill_requirements.map((skill) => skill.label);
+
+    console.log(skillLabels);
+
+      // Create a copy of formData with updated skill_requirements
+    const updatedFormData = { ...formData, skill_requirements: skillLabels };
+
+    console.log(updatedFormData);
+
+    const jsonData = JSON.stringify(updatedFormData);
+
+        wallet
+        .callMethod({
+        method: "create_client_job",
+        args: {
+          job_id: updatedFormData.job_id,
+          job:jsonData,
+        },
+        contractId:contractId,
+        deposit:deposit
+        })
+        .then(async () => {
+        return getJobs();
+        })
+        .then(setJobs)
+        .finally(() => {
+        setUiPleaseWait(false);
+        });
+      
+
+
+    // Update formData with the modified copy
+    setFormData(updatedFormData);
+
+    onClose(); // Close the modal after posting the job
   };
+
+  function getJobs() {
+		console.log(contractId)
+		return wallet.viewMethod({ method: "get_client_job", args: {id: land.id}, contractId});
+	
+	  }
+
 
   return (
     <Container maxW={'7xl'} p="12">
       <>
-            <Button onClick={onOpen}>Post Job</Button>
-            <Modal
-              initialFocusRef={initialRef}
-              finalFocusRef={finalRef}
-              isOpen={isOpen}
-              onClose={onClose}
-            >
-            {/* pub job_id: u128,
-            pub account_id: AccountId,
-            pub project_title: String,
-            pub project_description: String,
-            pub project_duration: String,
-            pub project_budget: u128,
-            pub skill_requirements: Vec<String>,
-            pub images: Vec<String>,
-            pub bid_available: bool, */}
+      <Button onClick={onOpen}>Post Job</Button>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        initialFocusRef={initialRef}
+        finalFocusRef={finalRef}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Post Job</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl>
+              <FormLabel>Title</FormLabel>
+              <Input
+                type="text"
+                name="project_title"
+                placeholder="Title"
+                value={formData.project_title}
+                onChange={handleInputChange}
+              />
+            </FormControl>
 
-              <ModalOverlay />
-              <ModalContent>
-                <ModalHeader>Post Job</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody pb={6}>
-                  <FormControl>
-                    <FormLabel>Title</FormLabel>
-                    <Input ref={initialRef} placeholder='title' />
-                  </FormControl>
+            <FormControl mt={4}>
+              <FormLabel>Description</FormLabel>
+              <Textarea
+                name="project_description"
+                placeholder="Job description"
+                value={formData.project_description}
+                onChange={handleInputChange}
+                size="sm"
+              />
+            </FormControl>
 
-                  <FormControl mt={4}>
-                    <FormLabel>Description</FormLabel>
-                    <>
-                      <Textarea
-                        // value={}
-                        // onChange={handleInputChange}
-                        placeholder='job description'
-                        size='sm'
-                      />
-                    </>
-                  </FormControl>
+            <FormControl>
+              <FormLabel>Duration</FormLabel>
+              <Input
+                type="text"
+                name="project_duration"
+                placeholder="Duration in hours"
+                value={formData.project_duration}
+                onChange={handleInputChange}
+              />
+            </FormControl>
 
-                  <FormControl>
-                    <FormLabel>Duration</FormLabel>
-                    <Input ref={initialRef} placeholder='duration in hours' />
-                  </FormControl>
+            <FormControl>
+              <FormLabel>Budget</FormLabel>
+              <Input
+                type="number"
+                name="project_budget"
+                placeholder="Enter amount"
+                value={formData.project_budget}
+                onChange={handleInputChange}
+              />
+            </FormControl>
 
-                  <FormControl>
-                  <FormLabel>Budget</FormLabel>
-                      <Input  type='number' placeholder='Enter amount' />
-                  </FormControl>
+            <FormControl>
+              <FormLabel>Skills Required</FormLabel>
+              <Select
+                isMulti
+                options={skillOptions}
+                value={formData.skill_requirements}
+                onChange={handleSkillChange}
+                placeholder="Select skills..."
+              />
+            </FormControl>
 
-                  <FormControl>
-                  <div>
-                    <FormLabel>Skills Reguired</FormLabel>
-                    <Select
-                      isMulti
-                      options={skillOptions}
-                      value={selectedSkills}
-                      onChange={handleSkillChange}
-                      placeholder="Select skills..."
-                    />
-                  </div>
-                  </FormControl>
-                  <FormControl>
-                  <div style={{padding:10}}>
-                    <input type="file" multiple/>
-                  </div>
-                  </FormControl>
-                </ModalBody>
-                <ModalFooter>
-                  <Button colorScheme='blue' mr={3}>
-                    Post
-                  </Button>
-                  <Button onClick={onClose}>Cancel</Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
-          </>
+            <FormControl>
+              <FormLabel>Upload Images</FormLabel>
+              <input type="file" multiple onChange={(e) => OnChangeMFile(Array.from(e.target.files))}/>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
+              Post
+            </Button>
+            <Button onClick={onClose}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
       <Heading as="h5"  padding="0.5rem 0 0">Jobs</Heading>
       <Box
         marginTop={{ base: '1', sm: '5' }}
