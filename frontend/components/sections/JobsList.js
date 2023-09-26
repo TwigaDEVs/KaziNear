@@ -1,8 +1,9 @@
-import React from 'react';
+import React,{useState} from 'react';
 import {
   Box,
   Heading,
   Image,
+  Button,
   Text,
   Divider,
   HStack,
@@ -12,7 +13,34 @@ import {
   useColorModeValue,
   Container,
   VStack,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Input,
+  Textarea,
+  InputGroup,
+  InputRightElement,
+  CheckIcon,
+  InputLeftElement,
 } from '@chakra-ui/react';
+
+import { Link } from "react-router-dom";
+import Select from 'react-select';
+
+function generateTo(JobId) {
+  return {
+    pathname: `/job/${JobId}`,
+  };
+}
+
+
 
 function JobTags(props) {
   const { marginTop = 0, tags } = props;
@@ -27,6 +55,12 @@ function JobTags(props) {
 
   return <HStack spacing={2} marginTop={marginTop}>{tagElements}</HStack>;
 }
+
+const linkStyle = {
+  textDecoration: 'none', // Remove underline
+  color: 'blue', // Change the text color to blue
+  // Add any other styles you want here
+};
 
 function JobOwner(props) {
   return (
@@ -45,9 +79,110 @@ function JobOwner(props) {
 }
 
 function JobList() {
+
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  
+  const initialRef = React.useRef(null)
+  const finalRef = React.useRef(null)
+
+  const skillOptions = [
+    { value: "html", label: "HTML" },
+    { value: "css", label: "CSS" },
+    { value: "javascript", label: "JavaScript" },
+    { value: "react", label: "React" },
+    { value: "python", label: "Python" },
+    { value: "java", label: "Java" },
+    { value: "csharp", label: "C#" },
+    { value: "ruby", label: "Ruby" },
+    // Add more programming-related skills as needed
+  ];
+
+  const [selectedSkills, setSelectedSkills] = useState([]);
+
+  const handleSkillChange = (selectedOptions) => {
+    setSelectedSkills(selectedOptions);
+  };
+
   return (
     <Container maxW={'7xl'} p="12">
-      <Heading as="h1"  padding="0.5rem 0 0">Stories by Chakra Templates</Heading>
+      <>
+            <Button onClick={onOpen}>Post Job</Button>
+            <Modal
+              initialFocusRef={initialRef}
+              finalFocusRef={finalRef}
+              isOpen={isOpen}
+              onClose={onClose}
+            >
+            {/* pub job_id: u128,
+            pub account_id: AccountId,
+            pub project_title: String,
+            pub project_description: String,
+            pub project_duration: String,
+            pub project_budget: u128,
+            pub skill_requirements: Vec<String>,
+            pub images: Vec<String>,
+            pub bid_available: bool, */}
+
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Post Job</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody pb={6}>
+                  <FormControl>
+                    <FormLabel>Title</FormLabel>
+                    <Input ref={initialRef} placeholder='title' />
+                  </FormControl>
+
+                  <FormControl mt={4}>
+                    <FormLabel>Description</FormLabel>
+                    <>
+                      <Textarea
+                        // value={}
+                        // onChange={handleInputChange}
+                        placeholder='job description'
+                        size='sm'
+                      />
+                    </>
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Duration</FormLabel>
+                    <Input ref={initialRef} placeholder='duration in hours' />
+                  </FormControl>
+
+                  <FormControl>
+                  <FormLabel>Budget</FormLabel>
+                      <Input  type='number' placeholder='Enter amount' />
+                  </FormControl>
+
+                  <FormControl>
+                  <div>
+                    <FormLabel>Skills Reguired</FormLabel>
+                    <Select
+                      isMulti
+                      options={skillOptions}
+                      value={selectedSkills}
+                      onChange={handleSkillChange}
+                      placeholder="Select skills..."
+                    />
+                  </div>
+                  </FormControl>
+                  <FormControl>
+                  <div style={{padding:10}}>
+                    <input type="file" multiple/>
+                  </div>
+                  </FormControl>
+                </ModalBody>
+                <ModalFooter>
+                  <Button colorScheme='blue' mr={3}>
+                    Post
+                  </Button>
+                  <Button onClick={onClose}>Cancel</Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+          </>
+      <Heading as="h5"  padding="0.5rem 0 0">Jobs</Heading>
       <Box
         marginTop={{ base: '1', sm: '5' }}
         display="flex"
@@ -94,9 +229,9 @@ function JobList() {
           justifyContent="center"
           marginTop={{ base: '3', sm: '0' }}>
           <JobTags tags={['Engineering', 'Product']} />
-          <Heading marginTop="1">
+          <Heading marginTop="1" fontSize={15}>
             <Text textDecoration="none" _hover={{ textDecoration: 'none' }}>
-              Blog article title
+              Job title
             </Text>
           </Heading>
           <Text
@@ -109,6 +244,9 @@ function JobList() {
             1500s, when an unknown printer took a galley of type and scrambled it to make
             a type specimen book.
           </Text>
+          <Link to={generateTo(1)} style={linkStyle}>
+            View
+          </Link>
           <JobOwner name="John Doe" date={new Date('2021-04-06T19:01:27Z')} />
         </Box>
       </Box>

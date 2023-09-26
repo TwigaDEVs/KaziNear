@@ -3,24 +3,8 @@
 import React from 'react'
 import { Stack, Text, Button } from '@chakra-ui/react'
 import { FcLock } from 'react-icons/fc'
-import { Link } from "react-router-dom";
 
-export default function MessagesCard() {
-  
-
-  function generateTo(JobId) {
-    return {
-      pathname: `/chat/${JobId}`,
-    };
-  }
-
-  const linkStyle = {
-    textDecoration: 'none', // Remove underline
-    color: 'blue', // Change the text color to blue
-    // Add any other styles you want here
-  };
-  
-
+export default function ChatsDetails() {
   return (
     <Stack p="4" boxShadow="lg" m="4" borderRadius="sm">
       <Stack direction="row" alignItems="center">
@@ -41,9 +25,7 @@ export default function MessagesCard() {
             Cookie Preferences
           </Button>
           <Button colorScheme="green">OK</Button>
-          <Link to={generateTo("land.id")} style={linkStyle}>
-            View
-          </Link>
+          
         </Stack>
       </Stack>
     </Stack>

@@ -30,6 +30,9 @@ import Profile from './pages/Profile';
 import Jobs from "./pages/Jobs";
 import Chats from "./pages/Chats";
 import Transactions from "./pages/Transactions"
+import JobDetailsPage from "./pages/JobDetails"
+import ChatsDetails from './components/sections/ChatsDetails';
+import ChatsDetailsPage from './pages/ChatsDetailsPage';
 
 
 
@@ -93,6 +96,8 @@ export default function App({ isSignedIn, contractId, wallet }) {
           <Route path="/jobs" element = {<Jobs isSignedIn={isSignedIn} wallet={wallet}/>} />
           <Route path="/chats" element = {<Chats isSignedIn={isSignedIn} wallet={wallet}/>} />
           <Route path="/transactions" element = {<Transactions isSignedIn={isSignedIn} wallet={wallet}/>} />
+          <Route path="/job/:id" element = {<JobDetailsPage wallet={wallet} isSignedIn={isSignedIn}/>} />
+          <Route path="/chat/:id" element = {<ChatsDetailsPage wallet={wallet} isSignedIn={isSignedIn}/>} />
           {/* <Route path="/invest" element = {<Invest />} />
           <Route path="/marketplace" element = {<Marketplace />} />
           <Route path="/my-investments" element = {<MyINvestments  wallet={wallet} contractId={contractId} lands={lands}/>} />

@@ -20,11 +20,11 @@ import {
 } from '@chakra-ui/react'
 import { MdLocalShipping } from 'react-icons/md'
 
-export default function Simple() {
+export default function JobDetails() {
   return (
     <Container maxW={'7xl'}>
       <SimpleGrid
-        columns={{ base: 1, lg: 2 }}
+        columns={{ base: 1, lg: 1 }}
         spacing={{ base: 8, md: 10 }}
         py={{ base: 18, md: 24 }}>
         <Flex>
