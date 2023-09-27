@@ -62,7 +62,7 @@ export default function App({ isSignedIn, contractId, wallet }) {
           <Route path="/jobs" element = {<Jobs isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
           <Route path="/chats" element = {<Chats isSignedIn={isSignedIn} wallet={wallet}/>} />
           <Route path="/transactions" element = {<Transactions isSignedIn={isSignedIn} wallet={wallet}/>} />
-          <Route path="/job/:id" element = {<JobDetailsPage wallet={wallet} isSignedIn={isSignedIn}/>} />
+          <Route path="/job/:id" element = {<JobDetailsPage isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
           <Route path="/chat/:id" element = {<ChatsDetailsPage wallet={wallet} isSignedIn={isSignedIn}/>} />
         </Routes>
 

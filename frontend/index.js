@@ -12,7 +12,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ChakraProvider } from "@chakra-ui/react";
 import customTheme from "./utils/theme";
 
-const CONTRACT_ADDRESS = "dev-1670843382887-77241312949034";
+const CONTRACT_ADDRESS = "dev-1695810643282-53814549079335";
 
 // When creating the wallet you can optionally ask to create an access key
 // Having the key enables to call non-payable methods without interrupting the user to sign

@@ -141,7 +141,7 @@ pub struct Transaction {
 
 
 #[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize,Debug,PartialEq,Deserialize)]
 pub struct KaziNear{
   freelancers: HashMap<AccountId, Freelancer>,
   disputes: HashMap<u128, Dispute>,

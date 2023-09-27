@@ -17,42 +17,58 @@ import {
   VisuallyHidden,
   List,
   ListItem,
+  Badge,
+  Divider,
 } from '@chakra-ui/react'
 import { MdLocalShipping } from 'react-icons/md'
+import { useParams} from 'react-router-dom';
+import React,{useState,useEffect} from 'react';
 
-export default function JobDetails() {
+export default function JobDetails({ isSignedIn, wallet , contractId}) {
+
+  const [job, setJob] = useState([]);
+
+  const params = useParams();
+
+  useEffect(() => {
+  
+    getJob().then(setJob);
+
+  }
+  , []);
+
+
+  function getJob() {
+    console.log(contractId)
+    const job_id = Number(params.id);
+    return wallet.viewMethod({ method: "get_client_job", args: {job_id:job_id}, contractId });
+
+  }
+
+ 
+
+
+  console.log(job);
+
   return (
     <Container maxW={'7xl'}>
       <SimpleGrid
         columns={{ base: 1, lg: 1 }}
         spacing={{ base: 8, md: 10 }}
         py={{ base: 18, md: 24 }}>
-        <Flex>
-          <Image
-            rounded={'md'}
-            alt={'product image'}
-            src={
-              'https://images.unsplash.com/photo-1596516109370-29001ec8ec36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwyODE1MDl8MHwxfGFsbHx8fHx8fHx8fDE2Mzg5MzY2MzE&ixlib=rb-1.2.1&q=80&w=1080'
-            }
-            fit={'cover'}
-            align={'center'}
-            w={'100%'}
-            h={{ base: '100%', sm: '400px', lg: '500px' }}
-          />
-        </Flex>
         <Stack spacing={{ base: 6, md: 10 }}>
           <Box as={'header'}>
             <Heading
               lineHeight={1.1}
               fontWeight={600}
               fontSize={{ base: '2xl', sm: '4xl', lg: '5xl' }}>
-              Automatic Watch
+              {job.project_title}
             </Heading>
             <Text
               color={useColorModeValue('gray.900', 'gray.400')}
               fontWeight={300}
               fontSize={'2xl'}>
-              $350.00 USD
+              {job.project_budget} NEAR
             </Text>
           </Box>
 
@@ -67,13 +83,10 @@ export default function JobDetails() {
                 color={useColorModeValue('gray.500', 'gray.400')}
                 fontSize={'2xl'}
                 fontWeight={'300'}>
-                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
-                eirmod tempor invidunt ut labore
+                {job.account_id}
               </Text>
               <Text fontSize={'lg'}>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad aliquid amet
-                at delectus doloribus dolorum expedita hic, ipsum maxime modi nam officiis
-                porro, quae, quisquam quos reprehenderit velit? Natus, totam.
+                {job.project_description}
               </Text>
             </VStack>
             <Box>
@@ -83,20 +96,42 @@ export default function JobDetails() {
                 fontWeight={'500'}
                 textTransform={'uppercase'}
                 mb={'4'}>
-                Features
+                Skill Requirements
               </Text>
 
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
-                <List spacing={2}>
-                  <ListItem>Chronograph</ListItem>
-                  <ListItem>Master Chronometer Certified</ListItem>{' '}
-                  <ListItem>Tachymeter</ListItem>
-                </List>
-                <List spacing={2}>
-                  <ListItem>Anti‑magnetic</ListItem>
-                  <ListItem>Chronometer</ListItem>
-                  <ListItem>Small seconds</ListItem>
-                </List>
+              <List spacing={2}>
+                  {job && job.skill_requirements ? (
+                    job.skill_requirements.map((skill, skillIndex) => (
+                      <div key={skillIndex}>
+                        <ListItem>{skill}</ListItem>
+                      </div>
+                    ))
+                  ) : (
+                    // Render a placeholder or loading message when job is undefined or skill_requirements is missing
+                    <div>Loading...</div>
+                  )}
+              </List>
+
+              <List spacing={2}>
+              <Text
+                fontSize={{ base: '12px', lg: '12px' }}
+                color={useColorModeValue('yellow.500', 'yellow.300')}
+                fontWeight={'500'}
+                textTransform={'uppercase'}
+                mb={'4'}>
+                Files
+              </Text>
+
+                {job && job.images && job.images.map((file, fileIndex) => (
+                  <ListItem key={fileIndex}>
+                    <a href={file} target="_blank" rel="noopener noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>
+                      File {fileIndex + 1}
+                    </a>
+                  </ListItem>
+                ))}
+              </List>
+
               </SimpleGrid>
             </Box>
             <Box>
@@ -112,73 +147,28 @@ export default function JobDetails() {
               <List spacing={2}>
                 <ListItem>
                   <Text as={'span'} fontWeight={'bold'}>
-                    Between lugs:
+                    Project Duration:
                   </Text>{' '}
-                  20 mm
+                  {job.project_duration} hours
                 </ListItem>
                 <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Bracelet:
-                  </Text>{' '}
-                  leather strap
+                {job.bid_available ? (
+                  <div></div>
+                  ) : (
+                    // Render the "Removed" badge when the job is not available
+                    <span style={{paddingLeft:'3'}}>
+                      <Badge colorScheme='red'>Not Available</Badge>
+                    </span>
+                  )}
                 </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Case:
-                  </Text>{' '}
-                  Steel
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Case diameter:
-                  </Text>{' '}
-                  42 mm
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Dial color:
-                  </Text>{' '}
-                  Black
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Crystal:
-                  </Text>{' '}
-                  Domed, scratch‑resistant sapphire crystal with anti‑reflective treatment
-                  inside
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Water resistance:
-                  </Text>{' '}
-                  5 bar (50 metres / 167 feet){' '}
-                </ListItem>
+
               </List>
             </Box>
           </Stack>
 
-          <Button
-            rounded={'none'}
-            w={'full'}
-            mt={8}
-            size={'lg'}
-            py={'7'}
-            bg={useColorModeValue('gray.900', 'gray.50')}
-            color={useColorModeValue('white', 'gray.900')}
-            textTransform={'uppercase'}
-            _hover={{
-              transform: 'translateY(2px)',
-              boxShadow: 'lg',
-            }}>
-            Add to cart
-          </Button>
-
-          <Stack direction="row" alignItems="center" justifyContent={'center'}>
-            <MdLocalShipping />
-            <Text>2-3 business days delivery</Text>
-          </Stack>
         </Stack>
       </SimpleGrid>
+      
     </Container>
   )
 }
