@@ -37,6 +37,7 @@ pub struct Dispute {
 #[derive(Clone,BorshDeserialize, BorshSerialize, Serialize,Debug,PartialEq,Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct FreelancerPortfolio {
+    pub portfolio_id:u128,
     pub account_id: AccountId,
     pub images: Vec<String>,
     pub videos: Vec<String>,
@@ -47,6 +48,7 @@ pub struct FreelancerPortfolio {
 #[derive(Clone,BorshDeserialize, BorshSerialize, Serialize,Debug,PartialEq,Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct FreelancerExperience {
+    pub experience_id:u128,
     pub account_id: AccountId,
     pub from_date: String,
     pub to_date: String,
@@ -96,6 +98,7 @@ pub struct ProjectMilestone {
 #[derive(Clone,BorshDeserialize, BorshSerialize, Serialize,Debug,PartialEq,Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Chat {
+    pub chat_id: u128,
     pub timestamp: u128,
     pub sender: AccountId,
     pub receiver: AccountId,
@@ -131,11 +134,12 @@ pub struct FreelancerRating {
 #[derive(Clone,BorshDeserialize, BorshSerialize, Serialize,Debug,PartialEq,Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Transaction {
+    pub transaction_id:u128,
     pub from: AccountId,
     pub to: AccountId,
     pub transaction_purpose: String,
     pub transaction_amount: u128,
-    pub timestamp: u128,
+    pub timestamp: u64,
     pub transaction_status: String,
 }
 
@@ -145,16 +149,17 @@ pub struct Transaction {
 pub struct KaziNear{
   freelancers: HashMap<AccountId, Freelancer>,
   disputes: HashMap<u128, Dispute>,
-  freelancer_portfolios: HashMap<AccountId, FreelancerPortfolio>,
-  freelancer_experiences: HashMap<AccountId, FreelancerExperience>,
+  freelancer_portfolios: HashMap<u128, FreelancerPortfolio>,
+  freelancer_experiences: HashMap<u128, FreelancerExperience>,
   client_jobs: HashMap<u128, ClientJobs>,
   freelancer_bids: HashMap<u128, FreelancerBid>,
   project_milestones: HashMap<u128, ProjectMilestone>,
-  chats: HashMap<AccountId, Chat>,
-  client_ratings: HashMap<AccountId, ClientRatings>,
-  freelancer_ratings: HashMap<AccountId, FreelancerRating>,
-  transactions: HashMap<AccountId, Transaction>,
+  chats: HashMap<u128, Chat>,
+  client_ratings: HashMap<u128, ClientRatings>,
+  freelancer_ratings: HashMap<u128, FreelancerRating>,
+  transactions: HashMap<u128, Transaction>,
   commission_fee:u128,
+  transaction_counter: u128,
 }
 
 
@@ -173,6 +178,7 @@ impl Default for KaziNear{
       freelancer_ratings:HashMap::new(),
       transactions:HashMap::new(),
       commission_fee:2,
+      transaction_counter:0,
     }
   }
 }
@@ -183,7 +189,7 @@ impl KaziNear {
       // Freelancer
 
         // Create a new freelancer entry
-        pub fn create_freelancer(&mut self, account_id: AccountId, freelancer: Freelancer) {
+     pub fn create_freelancer(&mut self, account_id: AccountId, freelancer: Freelancer) {
           self.freelancers.insert(account_id, freelancer);
       }
 
@@ -210,47 +216,73 @@ impl KaziNear {
 
       // Freelancer Portfolio
 
-      pub fn create_freelancer_portfolio(&mut self, account_id: AccountId, portfolio: FreelancerPortfolio) {
-        self.freelancer_portfolios.insert(account_id, portfolio);
+      pub fn create_freelancer_portfolio(&mut self, portfolio_id: u128, portfolio: FreelancerPortfolio) {
+        self.freelancer_portfolios.insert(portfolio_id, portfolio);
     }
 
       // Read a freelancer portfolio
-      pub fn get_freelancer_portfolio(&self, account_id: AccountId) -> Option<FreelancerPortfolio> {
-          self.freelancer_portfolios.get(&account_id).cloned()
+      pub fn get_freelancer_portfolio(&self, portfolio_id: u128) -> Option<FreelancerPortfolio> {
+          self.freelancer_portfolios.get(&portfolio_id).cloned()
       }
 
       // Update a freelancer portfolio entry
-      pub fn update_freelancer_portfolio(&mut self, account_id: AccountId, updated_portfolio: FreelancerPortfolio) {
-          self.freelancer_portfolios.insert(account_id, updated_portfolio);
+      pub fn update_freelancer_portfolio(&mut self, portfolio_id: u128, updated_portfolio: FreelancerPortfolio) {
+          self.freelancer_portfolios.insert(portfolio_id, updated_portfolio);
       }
 
       // Delete a freelancer portfolio entry
-      pub fn delete_freelancer_portfolio(&mut self, account_id: AccountId) {
-          self.freelancer_portfolios.remove(&account_id);
+      pub fn delete_freelancer_portfolio(&mut self, portfolio_id: u128) {
+          self.freelancer_portfolios.remove(&portfolio_id);
       }
+
+
+            // Get all jobs for a specific account
+        pub fn get_all_freelancer_portfolios_for_account(&self, account_id: AccountId) -> Vec<FreelancerPortfolio> {
+            let mut result = Vec::new();
+            for portfolio in self.freelancer_portfolios.values() {
+                if portfolio.account_id == account_id {
+                    result.push(portfolio.clone());
+                }
+            }
+            result.sort_by(|a, b| a.portfolio_id.cmp(&b.portfolio_id));
+
+            result
+        }
 
       // Freelancer Experience
 
     // Create a new freelancer experience entry
-      pub fn create_freelancer_experience(&mut self, account_id: AccountId, experience: FreelancerExperience) {
-        self.freelancer_experiences.insert(account_id, experience);
+      pub fn create_freelancer_experience(&mut self, experience_id: u128, experience: FreelancerExperience) {
+        self.freelancer_experiences.insert(experience_id, experience);
         }
 
         // Read a freelancer experience entry
-        pub fn get_freelancer_experience(&self, account_id: AccountId) -> Option<FreelancerExperience> {
-            self.freelancer_experiences.get(&account_id).cloned()
+        pub fn get_freelancer_experience(&self, experience_id: u128) -> Option<FreelancerExperience> {
+            self.freelancer_experiences.get(&experience_id).cloned()
         }
 
         // Update a freelancer experience entry
-        pub fn update_freelancer_experience(&mut self, account_id: AccountId, updated_experience: FreelancerExperience) {
-            self.freelancer_experiences.insert(account_id, updated_experience);
+        pub fn update_freelancer_experience(&mut self, experience_id: u128, updated_experience: FreelancerExperience) {
+            self.freelancer_experiences.insert(experience_id, updated_experience);
         }
 
         // Delete a freelancer experience entry
-        pub fn delete_freelancer_experience(&mut self, account_id: AccountId) {
-            self.freelancer_experiences.remove(&account_id);
+        pub fn delete_freelancer_experience(&mut self, experience_id: u128) {
+            self.freelancer_experiences.remove(&experience_id);
         }
 
+        // Get all jobs for a specific account
+        pub fn get_all_freelancer_experience_for_account(&self, account_id: AccountId) -> Vec<FreelancerExperience> {
+            let mut result = Vec::new();
+            for freelancer_experience in self.freelancer_experiences.values() {
+                if freelancer_experience.account_id == account_id {
+                    result.push(freelancer_experience.clone());
+                }
+            }
+            result.sort_by(|a, b| a.experience_id.cmp(&b.experience_id));
+
+            result
+        }
 
        //  Dispute 
 
@@ -303,6 +335,25 @@ impl KaziNear {
                 env::attached_deposit() >= job.project_budget,
                 "Attached deposit must be equal to or greater than the job's budget"
             );
+
+            let contract_address = env::current_account_id();
+        
+        // Generate a unique transaction ID using a counter
+            let transaction_id = self.transaction_counter + 1;
+            self.transaction_counter += 1;
+
+            // Create a Transaction with 'to' as the contract's address, and 'transaction_status' as "Escrow"
+            let transaction = Transaction {
+                transaction_id,
+                from: env::predecessor_account_id(),
+                to: contract_address,
+                transaction_purpose: "Client Job Creation".to_string(),
+                transaction_amount: env::attached_deposit(),
+                timestamp: env::block_timestamp(), // Use the counter as a timestamp
+                transaction_status: "Escrow".to_string(),
+            };
+
+            self.transactions.insert(transaction_id, transaction);
             self.client_jobs.insert(job_id, job);
         }
 
@@ -351,24 +402,24 @@ impl KaziNear {
       // Chats
 
       // Create a new chat entry
-        pub fn create_chat(&mut self, sender_id: AccountId,  chat: Chat) {
-            self.chats.insert(sender_id, chat);
+        pub fn create_chat(&mut self, chat_id: u128,  chat: Chat) {
+            self.chats.insert(chat_id, chat);
         }
 
         // Read a chat entry
-        pub fn get_chat(&self, sender_id: AccountId) -> Option<Chat> {
+        pub fn get_chat(&self, chat_id: u128) -> Option<Chat> {
         
-            self.chats.get(&sender_id).cloned()
+            self.chats.get(&chat_id).cloned()
         }
 
         // Update a chat entry
-        pub fn update_chat(&mut self, sender_id: AccountId,updated_chat: Chat) {
-            self.chats.insert(sender_id, updated_chat);
+        pub fn update_chat(&mut self, chat_id: u128,updated_chat: Chat) {
+            self.chats.insert(chat_id, updated_chat);
         }
 
         // Delete a chat entry
-        pub fn delete_chat(&mut self, sender_id: AccountId) {
-            self.chats.remove(&sender_id);
+        pub fn delete_chat(&mut self, chat_id: u128) {
+            self.chats.remove(&chat_id);
         }
 
         // Get all chats for a specific account
@@ -389,28 +440,35 @@ impl KaziNear {
     // Client Rating
 
         // Create a new client rating entry
-        pub fn create_client_rating(&mut self, account_id: AccountId,rating: ClientRatings) {
-            self.client_ratings.insert(account_id, rating);
+        pub fn create_client_rating(&mut self, rating_id: u128,rating: ClientRatings) {
+            self.client_ratings.insert(rating_id, rating);
         }
 
         // Read a client rating entry by account ID
-        pub fn get_client_rating_by_account(&self, account_id: AccountId) -> Option<ClientRatings> {
-            self.client_ratings.get(&account_id).cloned()
+        pub fn get_client_rating_by_id(&self, rating_id: u128) -> Option<ClientRatings> {
+            self.client_ratings.get(&rating_id).cloned()
         }
 
-            // Get client ratings for a specific user (by account_id)
-        pub fn get_client_ratings_by_account(&self, account_id: AccountId) -> Option<Vec<ClientRatings>> {
-            self.client_ratings.get(&account_id).map(|rating| vec![rating.clone()])
+
+        // Get all jobs for a specific account
+        pub fn get_client_ratings_for_account(&self, account_id: AccountId) -> Vec<ClientRatings> {
+            let mut result = Vec::new();
+            for client_rating in self.client_ratings.values() {
+                if client_rating.account_id == account_id {
+                    result.push(client_rating.clone());
+                }
+            }
+            result
         }
 
         // Update a client rating entry by account ID
-        pub fn update_client_rating_by_account(&mut self, account_id: AccountId, updated_rating: ClientRatings) {
-            self.client_ratings.insert(account_id, updated_rating);
+        pub fn update_client_rating_by_id(&mut self, rating_id: u128, updated_rating: ClientRatings) {
+            self.client_ratings.insert(rating_id, updated_rating);
         }
 
         // Delete a client rating entry by account ID
-        pub fn delete_client_rating_by_account(&mut self, account_id: AccountId) {
-            self.client_ratings.remove(&account_id);
+        pub fn delete_client_rating_by_id(&mut self, rating_id: u128) {
+            self.client_ratings.remove(&rating_id);
         }
 
         // Calculate and return the average rating for timely payments for a specific user
@@ -434,9 +492,10 @@ impl KaziNear {
         pub fn get_average_rating_for_timely_feedbacks_by_account(&self, account_id: AccountId) -> Option<u128> {
             let user_ratings: Vec<u128> = self
                 .client_ratings
-                .get(&account_id)
-                .map(|rating| vec![rating.rating_for_timely_feedbacks])
-                .unwrap_or_else(|| Vec::new());
+                .values()
+                .filter(|rating| rating.account_id == account_id)
+                .map(|rating| rating.rating_for_timely_feedbacks)
+                .collect();
 
             if user_ratings.is_empty() {
                 None
@@ -449,37 +508,44 @@ impl KaziNear {
 
 
         // Create a new freelancer rating entry
-        pub fn create_freelancer_rating(&mut self, account_id: AccountId, rating: FreelancerRating) {
-        self.freelancer_ratings.insert(account_id, rating);
+        pub fn create_freelancer_rating(&mut self, rating_id: u128, rating: FreelancerRating) {
+            self.freelancer_ratings.insert(rating_id, rating);
         }
 
         // Read a freelancer rating entry by account ID
-        pub fn get_freelancer_rating_by_account(&self, account_id: AccountId) -> Option<FreelancerRating> {
-        self.freelancer_ratings.get(&account_id).cloned()
+        pub fn get_freelancer_rating_by_id(&self, rating_id: u128) -> Option<FreelancerRating> {
+            self.freelancer_ratings.get(&rating_id).cloned()
         }
 
-        // Get freelancer ratings for a specific user (by account_id)
-        pub fn get_freelancer_ratings_by_account(&self, account_id: AccountId) -> Option<Vec<FreelancerRating>> {
-        self.freelancer_ratings.get(&account_id).map(|rating| vec![rating.clone()])
+        // Get all jobs for a specific account
+        pub fn get_freelancer_ratings_for_account(&self, account_id: AccountId) -> Vec<FreelancerRating> {
+            let mut result = Vec::new();
+            for freelancer_rating in self.freelancer_ratings.values() {
+                if freelancer_rating.account_id == account_id {
+                    result.push(freelancer_rating.clone());
+                }
+            }
+            result
         }
 
         // Update a freelancer rating entry by account ID
-        pub fn update_freelancer_rating_by_account(&mut self, account_id: AccountId, updated_rating: FreelancerRating) {
-        self.freelancer_ratings.insert(account_id, updated_rating);
+        pub fn update_freelancer_rating_by_id(&mut self, rating_id: u128, updated_rating: FreelancerRating) {
+            self.freelancer_ratings.insert(rating_id, updated_rating);
         }
 
         // Delete a freelancer rating entry by account ID
-        pub fn delete_freelancer_rating_by_account(&mut self, account_id: AccountId) {
-        self.freelancer_ratings.remove(&account_id);
+        pub fn delete_freelancer_rating_by_id(&mut self, rating_id: u128) {
+            self.freelancer_ratings.remove(&rating_id);
         }
 
         // Calculate and return the average rating for completed projects for a specific user
         pub fn get_average_rating_for_completed_projects_by_account(&self, account_id: AccountId) -> Option<u128> {
         let user_ratings: Vec<u128> = self
             .freelancer_ratings
-            .get(&account_id)
-            .map(|rating| vec![rating.rating_for_completed_projects])
-            .unwrap_or_else(|| Vec::new());
+            .values()
+            .filter(|rating| rating.account_id == account_id)
+            .map(|rating| rating.rating_for_completed_projects)
+            .collect();
 
         if user_ratings.is_empty() {
             None
@@ -701,6 +767,25 @@ impl KaziNear {
                                 // Mark the milestone as approved
                                 milestone.milestone_work_approved = true;
 
+                                let contract_address = env::current_account_id();
+        
+                                // Generate a unique transaction ID using a counter
+                                let transaction_id = self.transaction_counter + 1;
+                                self.transaction_counter += 1;
+                    
+                                // Create a Transaction with 'to' as the contract's address, and 'transaction_status' as "Escrow"
+                                let transaction = Transaction {
+                                    transaction_id,
+                                    from: contract_address,
+                                    to: env::predecessor_account_id(),
+                                    transaction_purpose: "Payment - milestone completed".to_string(),
+                                    transaction_amount: total_amount.clone(),
+                                    timestamp: env::block_timestamp(), // Use the counter as a timestamp
+                                    transaction_status: "Complete".to_string(),
+                                };
+                    
+                                self.transactions.insert(transaction_id, transaction);
+
                                 // Update the milestone in the storage
                                 self.project_milestones.insert(milestone_id, milestone.clone());
                             }
@@ -708,6 +793,11 @@ impl KaziNear {
                     }
                 }
             }
+        }
+
+
+        pub fn get_transaction(&self, transaction_id: u128) -> Option<Transaction> {
+            self.transactions.get(&transaction_id).cloned()
         }
 
 }
@@ -887,6 +977,7 @@ mod tests {
 
         // Create a new freelancer portfolio
         let portfolio = FreelancerPortfolio {
+            portfolio_id:1,
             account_id: user.clone(),
             images: vec!["image1".to_string()],
             videos: vec!["video1".to_string()],
@@ -895,10 +986,10 @@ mod tests {
         };
 
         // Call the create_freelancer_portfolio function
-        contract.create_freelancer_portfolio(portfolio.account_id.clone(), portfolio.clone());
+        contract.create_freelancer_portfolio(portfolio.portfolio_id.clone(), portfolio.clone());
 
         // Retrieve the created freelancer portfolio
-        let retrieved_portfolio = contract.get_freelancer_portfolio(portfolio.account_id.clone());
+        let retrieved_portfolio = contract.get_freelancer_portfolio(portfolio.portfolio_id.clone());
 
         // Assert that the retrieved portfolio matches the expected value
         assert_eq!(retrieved_portfolio, Some(portfolio));
@@ -913,6 +1004,7 @@ mod tests {
 
         // Create a new freelancer portfolio
         let mut portfolio = FreelancerPortfolio {
+            portfolio_id:1,
             account_id: user.clone(),
             images: vec!["image1".to_string()],
             videos: vec!["video1".to_string()],
@@ -921,16 +1013,16 @@ mod tests {
         };
 
         // Call the create_freelancer_portfolio function
-        contract.create_freelancer_portfolio(portfolio.account_id.clone(), portfolio.clone());
+        contract.create_freelancer_portfolio(portfolio.portfolio_id.clone(), portfolio.clone());
 
         // Update the freelancer portfolio's description
         portfolio.description = "Updated Portfolio for Freelancer One".to_string();
 
         // Call the update_freelancer_portfolio function
-        contract.update_freelancer_portfolio(portfolio.account_id.clone(), portfolio.clone());
+        contract.update_freelancer_portfolio(portfolio.portfolio_id.clone(), portfolio.clone());
 
         // Retrieve the updated freelancer portfolio
-        let retrieved_portfolio = contract.get_freelancer_portfolio(portfolio.account_id.clone());
+        let retrieved_portfolio = contract.get_freelancer_portfolio(portfolio.portfolio_id.clone());
 
         // Assert that the retrieved portfolio matches the updated value
         assert_eq!(retrieved_portfolio, Some(portfolio));
@@ -944,6 +1036,7 @@ mod tests {
 
         // Create a new freelancer portfolio
         let portfolio = FreelancerPortfolio {
+            portfolio_id:1,
             account_id: user.clone(),
             images: vec!["image1".to_string()],
             videos: vec!["video1".to_string()],
@@ -952,16 +1045,60 @@ mod tests {
         };
 
         // Call the create_freelancer_portfolio function
-        contract.create_freelancer_portfolio(portfolio.account_id.clone(), portfolio.clone());
+        contract.create_freelancer_portfolio(portfolio.portfolio_id.clone(), portfolio.clone());
 
         // Call the delete_freelancer_portfolio function
-        contract.delete_freelancer_portfolio(portfolio.account_id.clone());
+        contract.delete_freelancer_portfolio(portfolio.portfolio_id.clone());
 
         // Retrieve the deleted freelancer portfolio
-        let retrieved_portfolio = contract.get_freelancer_portfolio(portfolio.account_id.clone());
+        let retrieved_portfolio = contract.get_freelancer_portfolio(portfolio.portfolio_id.clone());
 
         // Assert that the retrieved portfolio is None (deleted)
         assert_eq!(retrieved_portfolio, None);
+    }
+
+
+
+    #[test]
+    fn test_get_all_freelancer_portfolios_for_account() {
+        // Initialize the contract and context
+        // Initialize the contract 
+        let mut contract = KaziNear::default();
+        let user = env::predecessor_account_id();
+        let user2 = accounts(2);
+
+
+        // Create a new freelancer portfolio
+        let portfolio1 = FreelancerPortfolio {
+                portfolio_id:1,
+                account_id: user.clone(),
+                images: vec!["image1".to_string()],
+                videos: vec!["video1".to_string()],
+                task_url: "task1".to_string(),
+                description: "Portfolio for Freelancer One".to_string(),
+        };
+
+
+        // Create a new freelancer portfolio
+        let portfolio2 = FreelancerPortfolio {
+            portfolio_id:2,
+            account_id: user.clone(),
+            images: vec!["image1".to_string()],
+            videos: vec!["video1".to_string()],
+            task_url: "task2".to_string(),
+            description: "Portfolio for Freelancer two".to_string(),
+        };
+    
+            // Call the create_freelancer_portfolio function
+        contract.create_freelancer_portfolio(portfolio1.portfolio_id.clone(), portfolio1.clone());
+        contract.create_freelancer_portfolio(portfolio2.portfolio_id.clone(), portfolio2.clone());
+
+        // Retrieve all jobs for account "alice"
+        let portfolio_for_alice = contract.get_all_freelancer_portfolios_for_account(user.clone());
+
+        // Assert that the retrieved jobs match the expected value
+        assert_eq!(portfolio_for_alice.len(), 2);
+        assert_eq!(portfolio_for_alice, vec![portfolio1,portfolio2]);
     }
 
     // Freelancer Experience Tests
@@ -974,6 +1111,7 @@ mod tests {
 
         // Create a new freelancer experience
         let experience = FreelancerExperience {
+            experience_id:1,
             account_id: user.clone(),
             from_date: "2021-01-01".to_string(),
             to_date: "2021-12-31".to_string(),
@@ -982,10 +1120,10 @@ mod tests {
         };
 
         // Call the create_freelancer_experience function
-        contract.create_freelancer_experience(user.clone(), experience.clone());
+        contract.create_freelancer_experience(experience.experience_id.clone(), experience.clone());
 
         // Retrieve the created freelancer experience
-        let retrieved_experience = contract.get_freelancer_experience(user.clone());
+        let retrieved_experience = contract.get_freelancer_experience(experience.experience_id.clone());
 
         // Assert that the retrieved experience matches the expected value
         assert_eq!(retrieved_experience, Some(experience));
@@ -999,6 +1137,7 @@ mod tests {
 
         // Create a new freelancer experience
         let mut experience = FreelancerExperience {
+            experience_id:1,
             account_id: user.clone(),
             from_date: "2021-01-01".to_string(),
             to_date: "2021-12-31".to_string(),
@@ -1007,16 +1146,16 @@ mod tests {
         };
 
         // Call the create_freelancer_experience function
-        contract.create_freelancer_experience(user.clone(), experience.clone());
+        contract.create_freelancer_experience(experience.experience_id.clone(), experience.clone());
 
         // Update the freelancer experience
         experience.from_date = "2022-01-01".to_string();
 
         // Call the update_freelancer_experience function
-        contract.update_freelancer_experience(user.clone(), experience.clone());
+        contract.update_freelancer_experience(experience.experience_id.clone(), experience.clone());
 
         // Retrieve the updated freelancer experience
-        let retrieved_experience = contract.get_freelancer_experience(user.clone());
+        let retrieved_experience = contract.get_freelancer_experience(experience.experience_id.clone());
 
         // Assert that the retrieved experience matches the updated value
         assert_eq!(retrieved_experience, Some(experience));
@@ -1030,6 +1169,7 @@ mod tests {
 
         // Create a new freelancer experience
         let experience = FreelancerExperience {
+            experience_id:1,
             account_id: user.clone(),
             from_date: "2021-01-01".to_string(),
             to_date: "2021-12-31".to_string(),
@@ -1038,17 +1178,61 @@ mod tests {
         };
 
         // Call the create_freelancer_experience function
-        contract.create_freelancer_experience(user.clone(), experience.clone());
+        contract.create_freelancer_experience(experience.experience_id.clone(), experience.clone());
 
         // Call the delete_freelancer_experience function
-        contract.delete_freelancer_experience(user.clone());
+        contract.delete_freelancer_experience(experience.experience_id.clone());
 
         // Retrieve the deleted freelancer experience
-        let retrieved_experience = contract.get_freelancer_experience(user.clone());
+        let retrieved_experience = contract.get_freelancer_experience(experience.experience_id.clone());
 
         // Assert that the retrieved experience is None (deleted)
         assert_eq!(retrieved_experience, None);
     }
+
+
+    #[test]
+    fn test_get_all_freelancer_experience_for_account() {
+        // Initialize the contract and context
+        // Initialize the contract 
+        let mut contract = KaziNear::default();
+        let user = env::predecessor_account_id();
+        let user2 = accounts(2);
+
+
+        // Create a new freelancer portfolio
+        let experience1 = FreelancerExperience {
+            experience_id: 1,
+            account_id: user.clone(),
+            from_date: "2021-01-01".to_string(),
+            to_date: "2021-12-31".to_string(),
+            job_title: "Software Engineer".to_string(),
+            job_description: "Worked on project X".to_string(),
+        };
+
+
+        // Create a new freelancer portfolio
+        let experience2 = FreelancerExperience {
+            experience_id:2,
+            account_id: user.clone(),
+            from_date: "2021-01-01".to_string(),
+            to_date: "2021-12-31".to_string(),
+            job_title: "Software Engineer".to_string(),
+            job_description: "Worked on project X".to_string(),
+        };
+    
+            // Call the create_freelancer_portfolio function
+        contract.create_freelancer_experience(experience1.experience_id.clone(), experience1.clone());
+        contract.create_freelancer_experience(experience2.experience_id.clone(), experience2.clone());
+
+        // Retrieve all jobs for account "alice"
+        let experience_for_alice = contract.get_all_freelancer_experience_for_account(user.clone());
+
+        // Assert that the retrieved jobs match the expected value
+        assert_eq!(experience_for_alice.len(), 2);
+        assert_eq!(experience_for_alice, vec![experience1,experience2]);
+    }
+
 
    // Disputes Tests
   
@@ -1208,8 +1392,6 @@ mod tests {
     
         // Simulate a transfer of funds to the contract
         // testing_env!(context_with_balance(user.clone(), initial_balance));
-
-
           
         // Create a new job
         let job_id = 1;
@@ -1235,9 +1417,23 @@ mod tests {
     
         // Retrieve the created job
         let retrieved_job = contract.get_client_job(job_id);
-    
         // Assert that the retrieved job matches the expected value
         assert_eq!(retrieved_job, Some(job));
+
+        let created_transaction = contract.get_transaction(1);
+
+        let contract_address = env::current_account_id();
+    
+        
+        assert_eq!(created_transaction, Some(Transaction {
+            transaction_id: 1,
+            from: user.clone(),
+            to: contract_address, // Modify this to match your contract's logic
+            transaction_purpose: "Client Job Creation".to_string(),
+            transaction_amount: budget.clone(),
+            timestamp: env::block_timestamp(), // Modify this to match your contract's logic
+            transaction_status: "Escrow".to_string(),
+        }));
     }
     
 
@@ -1440,6 +1636,7 @@ mod tests {
         let sender_id = user.clone();
         let timestamp = 1;
         let chat = Chat {
+            chat_id:1,
             timestamp: timestamp,
             sender: user.clone(),
             receiver: user2.clone(),
@@ -1449,10 +1646,10 @@ mod tests {
         };
 
         // Call the create_chat function
-        contract.create_chat(sender_id.clone(),chat.clone());
+        contract.create_chat(chat.chat_id.clone(),chat.clone());
 
         // Retrieve the created chat
-        let retrieved_chat = contract.get_chat(sender_id.clone());
+        let retrieved_chat = contract.get_chat(chat.chat_id.clone());
 
         // Assert that the retrieved chat matches the expected value
         assert_eq!(retrieved_chat, Some(chat));
@@ -1469,6 +1666,7 @@ mod tests {
         let sender_id = user.clone();
         let timestamp = 1;
         let mut chat = Chat {
+            chat_id:1,
             timestamp: timestamp,
             sender: user.clone(),
             receiver: user2.clone(),
@@ -1478,16 +1676,16 @@ mod tests {
         };
 
         // Call the create_chat function
-        contract.create_chat(sender_id.clone(), chat.clone());
+        contract.create_chat(chat.chat_id.clone(), chat.clone());
 
         // Update the chat
         chat.message = "Updated message for Bob".to_string();
 
         // Call the update_chat function
-        contract.update_chat(sender_id.clone(), chat.clone());
+        contract.update_chat(chat.chat_id.clone(), chat.clone());
 
         // Retrieve the updated chat
-        let retrieved_chat = contract.get_chat(sender_id.clone());
+        let retrieved_chat = contract.get_chat(chat.chat_id.clone());
 
         // Assert that the retrieved chat matches the updated value
         assert_eq!(retrieved_chat, Some(chat));
@@ -1504,6 +1702,7 @@ mod tests {
         let sender_id = user.clone();
         let timestamp = 1;
         let chat = Chat {
+            chat_id:1,
             timestamp: timestamp,
             sender: user.clone(),
             receiver: user2.clone(),
@@ -1513,13 +1712,13 @@ mod tests {
         };
 
         // Call the create_chat function
-        contract.create_chat(sender_id.clone(),  chat.clone());
+        contract.create_chat(chat.chat_id.clone(),  chat.clone());
 
         // Call the delete_chat function
-        contract.delete_chat(sender_id.clone());
+        contract.delete_chat(chat.chat_id.clone());
 
         // Retrieve the deleted chat
-        let retrieved_chat = contract.get_chat(sender_id.clone());
+        let retrieved_chat = contract.get_chat(chat.chat_id.clone());
 
         // Assert that the retrieved chat is None (deleted)
         assert_eq!(retrieved_chat, None);
@@ -1534,6 +1733,7 @@ mod tests {
 
         // Create chats for different accounts
         let chat1 = Chat {
+            chat_id:1,
             timestamp: 1,
             sender: user.clone(),
             receiver: user2.clone(),
@@ -1543,6 +1743,7 @@ mod tests {
         };
 
         let chat2 = Chat {
+            chat_id:2,
             timestamp: 2,
             sender: user2.clone(),
             receiver: user.clone(),
@@ -1552,8 +1753,8 @@ mod tests {
         };
 
         // Call the create_chat function for each chat
-        contract.create_chat(chat1.sender.clone(),  chat1.clone());
-        contract.create_chat(chat2.sender.clone(), chat2.clone());
+        contract.create_chat(chat1.chat_id.clone(),  chat1.clone());
+        contract.create_chat(chat2.chat_id.clone(), chat2.clone());
 
         // Retrieve all chats for account "alice"
         let chats_for_alice = contract.get_all_chats_for_account(user);
@@ -1583,14 +1784,14 @@ mod tests {
             rating_for_timely_feedbacks: 4,
         };
 
-        contract.create_client_rating(user2.clone(), rating.clone());
+        contract.create_client_rating(rating.rating_id.clone(), rating.clone());
 
-        let retrieved_rating = contract.get_client_rating_by_account(user2.clone()).unwrap();
+        let retrieved_rating = contract.get_client_rating_by_id(rating.rating_id.clone()).unwrap();
         assert_eq!(retrieved_rating, rating);
     }
 
     #[test]
-    fn test_get_client_ratings_by_account() {
+    fn test_get_client_ratings_for_account() {
       let mut contract = KaziNear::default();
       let user = env::predecessor_account_id();
       let user2 = accounts(2);
@@ -1606,15 +1807,15 @@ mod tests {
             rating_for_timely_feedbacks: 4,
         };
 
-        contract.create_client_rating(user2.clone(),rating.clone());
+        contract.create_client_rating(rating.rating_id.clone(),rating.clone());
 
-        let retrieved_ratings = contract.get_client_ratings_by_account(user2.clone()).unwrap();
+        let retrieved_ratings = contract.get_client_ratings_for_account(user.clone());
         assert_eq!(retrieved_ratings.len(), 1);
         assert_eq!(retrieved_ratings[0], rating);
     }
 
     #[test]
-    fn test_update_client_rating_by_account() {
+    fn test_update_client_rating_by_id() {
       let mut contract = KaziNear::default();
       let user = env::predecessor_account_id();
       let user2 = accounts(2);
@@ -1630,7 +1831,7 @@ mod tests {
             rating_for_timely_feedbacks: 4,
         };
 
-        contract.create_client_rating(user2.clone(),rating1.clone());
+        contract.create_client_rating(rating1.rating_id.clone(),rating1.clone());
 
         let updated_rating = ClientRatings {
             rating_id: 1,
@@ -1642,9 +1843,9 @@ mod tests {
             rating_for_timely_feedbacks: 5,
         };
 
-        contract.update_client_rating_by_account(user2.clone(), updated_rating.clone());
+        contract.update_client_rating_by_id(updated_rating.rating_id.clone(), updated_rating.clone());
 
-        let retrieved_rating = contract.get_client_rating_by_account(user2).unwrap();
+        let retrieved_rating = contract.get_client_rating_by_id(updated_rating.rating_id.clone()).unwrap();
         assert_eq!(retrieved_rating, updated_rating);
     }
 
@@ -1665,11 +1866,11 @@ mod tests {
             rating_for_timely_feedbacks: 4,
         };
 
-        contract.create_client_rating(user2.clone(),rating.clone());
+        contract.create_client_rating(rating.rating_id.clone(),rating.clone());
 
-        contract.delete_client_rating_by_account(user2.clone());
+        contract.delete_client_rating_by_id(rating.rating_id.clone());
 
-        let retrieved_rating = contract.get_client_rating_by_account(user2.clone());
+        let retrieved_rating = contract.get_client_rating_by_id(rating.rating_id.clone());
         assert!(retrieved_rating.is_none());
     }
 
@@ -1700,8 +1901,8 @@ mod tests {
             rating_for_timely_feedbacks: 5,
         };
 
-        contract.create_client_rating(user.clone(), rating1.clone());
-        contract.create_client_rating(user2, rating2.clone());
+        contract.create_client_rating(rating1.rating_id.clone(), rating1.clone());
+        contract.create_client_rating(rating2.rating_id.clone(), rating2.clone());
 
         let average = contract.get_average_rating_for_timely_payments_by_account(user).unwrap();
         assert_eq!(average, 4); // (5 + 4) / 2 = 4.5, but rounded down to 4
@@ -1734,8 +1935,8 @@ mod tests {
             rating_for_timely_feedbacks: 5,
         };
 
-        contract.create_client_rating(user.clone(),  rating1.clone());
-        contract.create_client_rating(user2.clone(),  rating2.clone());
+        contract.create_client_rating(rating1.rating_id.clone(),  rating1.clone());
+        contract.create_client_rating(rating2.rating_id.clone(),  rating2.clone());
 
         let average = contract.get_average_rating_for_timely_feedbacks_by_account(user).unwrap();
         assert_eq!(average, 4); // (4 + 5) / 2 = 4.5, but rounded down to 4
@@ -1743,7 +1944,7 @@ mod tests {
 
 
     #[test]
-    fn test_get_client_rating_by_account() {
+    fn test_get_client_rating_by_id() {
       let mut contract = KaziNear::default();
       let user = env::predecessor_account_id();
       let user2 = accounts(2);
@@ -1759,9 +1960,9 @@ mod tests {
             rating_for_timely_feedbacks: 4,
         };
 
-        contract.create_client_rating(user2.clone(), rating.clone());
+        contract.create_client_rating(rating.rating_id.clone(), rating.clone());
 
-        let retrieved_rating = contract.get_client_rating_by_account(user2).unwrap();
+        let retrieved_rating = contract.get_client_rating_by_id(rating.rating_id.clone()).unwrap();
         assert_eq!(retrieved_rating, rating);
     }
 
@@ -1786,14 +1987,14 @@ mod tests {
             rating_for_communication_skills: 4,
         };
 
-        contract.create_freelancer_rating(user2.clone(), rating.clone());
+        contract.create_freelancer_rating(rating.rating_id.clone(), rating.clone());
 
-        let retrieved_rating = contract.get_freelancer_rating_by_account(user2).unwrap();
+        let retrieved_rating = contract.get_freelancer_rating_by_id(rating.rating_id.clone()).unwrap();
         assert_eq!(retrieved_rating, rating);
     }
 
     #[test]
-    fn test_get_freelancer_ratings_by_account() {
+    fn test_get_freelancer_ratings_for_account() {
       let mut contract = KaziNear::default();
       let user = env::predecessor_account_id();
       let user2 = accounts(2);
@@ -1809,15 +2010,17 @@ mod tests {
             rating_for_communication_skills: 4,
         };
 
-        contract.create_freelancer_rating(user2.clone(), rating.clone());
+        contract.create_freelancer_rating(rating.rating_id.clone(), rating.clone());
 
-        let retrieved_ratings = contract.get_freelancer_ratings_by_account(user2).unwrap();
+        let retrieved_ratings = contract.get_freelancer_ratings_for_account(user.clone());
         assert_eq!(retrieved_ratings.len(), 1);
         assert_eq!(retrieved_ratings[0], rating);
+
+
     }
 
     #[test]
-    fn test_update_freelancer_rating_by_account() {
+    fn test_update_freelancer_rating_by_id() {
       let mut contract = KaziNear::default();
       let user = env::predecessor_account_id();
       let user2 = accounts(2);
@@ -1833,7 +2036,7 @@ mod tests {
             rating_for_communication_skills: 4,
         };
 
-        contract.create_freelancer_rating(user2.clone(), rating1.clone());
+        contract.create_freelancer_rating(rating1.rating_id.clone(), rating1.clone());
 
         let updated_rating = FreelancerRating {
             rating_id: 1,
@@ -1845,9 +2048,9 @@ mod tests {
             rating_for_communication_skills: 5,
         };
 
-        contract.update_freelancer_rating_by_account(user.clone(), updated_rating.clone());
+        contract.update_freelancer_rating_by_id(updated_rating.rating_id.clone(), updated_rating.clone());
 
-        let retrieved_rating = contract.get_freelancer_rating_by_account(user).unwrap();
+        let retrieved_rating = contract.get_freelancer_rating_by_id(updated_rating.rating_id.clone()).unwrap();
         assert_eq!(retrieved_rating, updated_rating);
     }
 
@@ -1868,11 +2071,11 @@ mod tests {
             rating_for_communication_skills: 4,
         };
 
-        contract.create_freelancer_rating(user2.clone(), rating.clone());
+        contract.create_freelancer_rating(rating.rating_id.clone(), rating.clone());
 
-        contract.delete_freelancer_rating_by_account(user2.clone());
+        contract.delete_freelancer_rating_by_id(rating.rating_id.clone());
 
-        let retrieved_rating = contract.get_freelancer_rating_by_account(user2.clone());
+        let retrieved_rating = contract.get_freelancer_rating_by_id(rating.rating_id.clone());
         assert!(retrieved_rating.is_none());
     }
 
@@ -1903,8 +2106,8 @@ mod tests {
             rating_for_communication_skills: 5,
         };
 
-        contract.create_freelancer_rating(user2.clone(),  rating1.clone());
-        contract.create_freelancer_rating(user.clone(), rating2.clone());
+        contract.create_freelancer_rating(rating1.rating_id.clone(),  rating1.clone());
+        contract.create_freelancer_rating(rating2.rating_id.clone(), rating2.clone());
 
         let average = contract.get_average_rating_for_completed_projects_by_account(user).unwrap();
         assert_eq!(average, 4); // (5 + 4) / 2 = 4.5, but rounded down to 4
@@ -1937,8 +2140,8 @@ mod tests {
             rating_for_communication_skills: 2,
         };
 
-        contract.create_freelancer_rating(user2.clone(), rating1.clone());
-        contract.create_freelancer_rating(user.clone(), rating2.clone());
+        contract.create_freelancer_rating(rating1.rating_id.clone(), rating1.clone());
+        contract.create_freelancer_rating(rating2.rating_id.clone(), rating2.clone());
 
         let average = contract.get_average_rating_for_communication_skills_by_account(user).unwrap();
         assert_eq!(average, 3); // (4 + 5) / 2 = 4.5, but rounded down to 4
