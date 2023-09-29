@@ -160,6 +160,7 @@ pub struct KaziNear{
   transactions: HashMap<u128, Transaction>,
   commission_fee:u128,
   transaction_counter: u128,
+  portfolio_counter:u128,
 }
 
 
@@ -179,6 +180,7 @@ impl Default for KaziNear{
       transactions:HashMap::new(),
       commission_fee:2,
       transaction_counter:0,
+      portfolio_counter:0,
     }
   }
 }
@@ -216,7 +218,11 @@ impl KaziNear {
 
       // Freelancer Portfolio
 
-      pub fn create_freelancer_portfolio(&mut self, portfolio_id: u128, portfolio: FreelancerPortfolio) {
+      pub fn create_freelancer_portfolio(&mut self,mut portfolio_id: u128,mut portfolio: FreelancerPortfolio) {
+        let new_portfolio_id = self.portfolio_counter + 1;
+        self.portfolio_counter += 1;
+        portfolio.portfolio_id = new_portfolio_id;
+        portfolio_id = new_portfolio_id.clone();
         self.freelancer_portfolios.insert(portfolio_id, portfolio);
     }
 
@@ -248,6 +254,11 @@ impl KaziNear {
 
             result
         }
+
+        // Get the total number of freelancers
+      pub fn get_total_freelancer_portfolios(&self) -> usize {
+        self.freelancer_portfolios.len()
+    }
 
       // Freelancer Experience
 
@@ -282,6 +293,10 @@ impl KaziNear {
             result.sort_by(|a, b| a.experience_id.cmp(&b.experience_id));
 
             result
+        }
+
+        pub fn get_total_freelancer_experiences(&self) -> usize {
+            self.freelancer_experiences.len()
         }
 
        //  Dispute 
@@ -319,6 +334,10 @@ impl KaziNear {
             result.sort_by(|a, b| a.dispute_id.cmp(&b.dispute_id));
             
             result
+        }
+
+        pub fn get_total_disputes(&self) -> usize {
+            self.disputes.len()
         }
 
     // Client Jobs
@@ -398,6 +417,11 @@ impl KaziNear {
         }
 
 
+        pub fn get_total_client_jobs(&self) -> usize {
+            self.client_jobs.len()
+        }
+
+
 
       // Chats
 
@@ -434,6 +458,10 @@ impl KaziNear {
         result.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
 
         result
+        }
+
+        pub fn get_total_chats(&self) -> usize {
+            self.chats.len()
         }
 
 
@@ -504,6 +532,10 @@ impl KaziNear {
             }
         }
 
+
+        pub fn get_total_client_ratings(&self) -> usize {
+            self.client_ratings.len()
+        }
     // Freelance Rating
 
 
@@ -601,6 +633,11 @@ impl KaziNear {
             }
         }
 
+
+        pub fn get_total_freelancer_ratings(&self) -> usize {
+            self.freelancer_ratings.len()
+        }
+
     // Freelancer Bids
 
 
@@ -632,7 +669,7 @@ impl KaziNear {
 
         // Read a freelancer bid entry
         pub fn get_freelancer_bid(&self, bid_id: u128) -> Option<FreelancerBid> {
-        self.freelancer_bids.get(&bid_id).cloned()
+            self.freelancer_bids.get(&bid_id).cloned()
         }
 
         pub fn update_freelancer_bid(&mut self, bid_id: u128, updated_bid: FreelancerBid) -> bool {
@@ -680,6 +717,11 @@ impl KaziNear {
         true // Bid accepted successfully
         }
 
+
+        pub fn get_total_freelancer_bids(&self) -> usize {
+            self.freelancer_bids.len()
+        }
+        
     
     // Project Milestones
 
@@ -732,6 +774,11 @@ impl KaziNear {
         // Delete a project milestone entry by milestone ID
         pub fn delete_project_milestone(&mut self, milestone_id: u128) {
         self.project_milestones.remove(&milestone_id);
+        }
+
+
+        pub fn get_total_project_milestones(&self) -> usize {
+            self.project_milestones.len()
         }
 
 
@@ -798,6 +845,11 @@ impl KaziNear {
 
         pub fn get_transaction(&self, transaction_id: u128) -> Option<Transaction> {
             self.transactions.get(&transaction_id).cloned()
+        }
+
+
+        pub fn get_total_transactions(&self) -> usize {
+            self.transactions.len()
         }
 
 }
@@ -1099,6 +1151,12 @@ mod tests {
         // Assert that the retrieved jobs match the expected value
         assert_eq!(portfolio_for_alice.len(), 2);
         assert_eq!(portfolio_for_alice, vec![portfolio1,portfolio2]);
+
+
+        let total_freelancers_portfolios = contract.get_total_freelancer_portfolios();
+
+        //user Assert that the total freelancers count matches the expected value
+        assert_eq!(total_freelancers_portfolios, 2);
     }
 
     // Freelancer Experience Tests
@@ -1231,6 +1289,12 @@ mod tests {
         // Assert that the retrieved jobs match the expected value
         assert_eq!(experience_for_alice.len(), 2);
         assert_eq!(experience_for_alice, vec![experience1,experience2]);
+
+
+        let total_freelancers_experiences = contract.get_total_freelancer_experiences();
+
+       
+        assert_eq!(total_freelancers_experiences, 2);
     }
 
 
@@ -1379,6 +1443,12 @@ mod tests {
         // Assert that the retrieved disputes match the expected value
         assert_eq!(disputes_for_job_1.len(), 2);
         assert_eq!(disputes_for_job_1, vec![dispute1, dispute3]);
+
+
+        let total_disputes = contract.get_total_disputes();
+
+       
+        assert_eq!(total_disputes, 3);
     }
 
     // Client Jobs
@@ -1621,6 +1691,12 @@ mod tests {
         // Assert that the retrieved jobs match the expected value
         assert_eq!(all_client_jobs.len(), 2);
         assert_eq!(all_client_jobs, vec![job1, job2]);
+
+
+        let total_jobs = contract.get_total_client_jobs();
+
+       
+        assert_eq!(total_jobs, 2);
     }
 
     // Chats Tests
@@ -1762,6 +1838,12 @@ mod tests {
         // Assert that the retrieved chats match the expected value
         assert_eq!(chats_for_alice.len(), 2);
         assert_eq!(chats_for_alice, vec![chat1,chat2]);
+
+
+        let total_chats = contract.get_total_chats();
+
+       
+        assert_eq!(total_chats, 2);
     }
 
 
@@ -1964,6 +2046,11 @@ mod tests {
 
         let retrieved_rating = contract.get_client_rating_by_id(rating.rating_id.clone()).unwrap();
         assert_eq!(retrieved_rating, rating);
+
+        let total_ratings = contract.get_total_client_ratings();
+
+       
+        assert_eq!(total_ratings, 1);
     }
 
     // Freelancer Ratings Tests
@@ -2052,6 +2139,11 @@ mod tests {
 
         let retrieved_rating = contract.get_freelancer_rating_by_id(updated_rating.rating_id.clone()).unwrap();
         assert_eq!(retrieved_rating, updated_rating);
+
+        let total_ratings = contract.get_total_freelancer_ratings();
+
+       
+        assert_eq!(total_ratings, 1);
     }
 
     #[test]
@@ -2402,6 +2494,11 @@ mod tests {
 
         let accepted_job = contract.get_client_job(job_id).unwrap();
         assert!(!accepted_job.bid_available);
+
+        let total_bids = contract.get_total_freelancer_bids();
+
+       
+        assert_eq!(total_bids, 1);
     }
 
     #[test]
@@ -2627,6 +2724,11 @@ mod tests {
     
             // Assert: verify that the retrieved milestones match the created ones
             assert_eq!(milestones, vec![milestone1, milestone2]);
+
+            let total_milestones = contract.get_total_project_milestones();
+
+       
+            assert_eq!(total_milestones, 2);
         }
     
         // Test deleting a project milestone
@@ -2794,6 +2896,11 @@ mod tests {
         
             // Verify that the funds are transferred to the freelancer's account
             // You can add assertions based on your contract's logic and expectations
+
+            let total_transactions = contract.get_total_transactions();
+
+       
+            assert_eq!(total_transactions, 2);
         }
         
 
