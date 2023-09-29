@@ -1,4 +1,5 @@
 #[allow(unused_imports)]
+#[allow(warnings)]
 // Find all our documentation at https://docs.near.org
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, AccountId,Promise,log, near_bindgen};
@@ -161,6 +162,14 @@ pub struct KaziNear{
   commission_fee:u128,
   transaction_counter: u128,
   portfolio_counter:u128,
+  experiences_counter:u128,
+  jobs_counter:u128,
+  bids_counter:u128,
+  milestones_counter:u128,
+  chats_counter:u128,
+  client_ratings_counter:u128,
+  freelancer_ratings_counter:u128,
+  dispute_counter:u128,
 }
 
 
@@ -181,6 +190,14 @@ impl Default for KaziNear{
       commission_fee:2,
       transaction_counter:0,
       portfolio_counter:0,
+      experiences_counter:0,
+      jobs_counter:0,
+      bids_counter:0,
+      milestones_counter:0,
+      chats_counter:0,
+      client_ratings_counter:0,
+      freelancer_ratings_counter:0,
+      dispute_counter:0,
     }
   }
 }
@@ -263,7 +280,11 @@ impl KaziNear {
       // Freelancer Experience
 
     // Create a new freelancer experience entry
-      pub fn create_freelancer_experience(&mut self, experience_id: u128, experience: FreelancerExperience) {
+      pub fn create_freelancer_experience(&mut self,mut experience_id: u128,mut experience: FreelancerExperience) {
+        let new_experience_id = self.experiences_counter + 1;
+        self.experiences_counter += 1;
+        experience.experience_id = new_experience_id;
+        experience_id = new_experience_id.clone();
         self.freelancer_experiences.insert(experience_id, experience);
         }
 
@@ -303,7 +324,11 @@ impl KaziNear {
 
 
         // Create a new dispute entry
-        pub fn create_dispute(&mut self, dispute_id: u128, dispute: Dispute) {
+        pub fn create_dispute(&mut self,mut dispute_id: u128,mut dispute: Dispute) {
+            let new_dispute_id = self.dispute_counter + 1;
+            self.dispute_counter += 1;
+            dispute.dispute_id = new_dispute_id;
+            dispute_id = new_dispute_id.clone();
             self.disputes.insert(dispute_id, dispute);
         }
 
@@ -346,8 +371,8 @@ impl KaziNear {
         #[payable]
         pub fn create_client_job(
             &mut self,
-            job_id: u128,
-            job: ClientJobs,
+            mut job_id: u128,
+            mut job: ClientJobs,
         ) {
                 // Ensure the attached deposit is equal to or greater than the job's budget
                 assert!(
@@ -373,6 +398,13 @@ impl KaziNear {
             };
 
             self.transactions.insert(transaction_id, transaction);
+
+
+            let new_job_id = self.jobs_counter + 1;
+            self.jobs_counter += 1;
+            job.job_id = new_job_id;
+            job_id = new_job_id.clone();
+
             self.client_jobs.insert(job_id, job);
         }
 
@@ -426,7 +458,10 @@ impl KaziNear {
       // Chats
 
       // Create a new chat entry
-        pub fn create_chat(&mut self, chat_id: u128,  chat: Chat) {
+        pub fn create_chat(&mut self,mut chat_id: u128,mut  chat: Chat) {
+            let new_chat_id = self.chats_counter + 1;
+            self.chats_counter += 1;
+            chat.chat_id = new_chat_id;
             self.chats.insert(chat_id, chat);
         }
 
@@ -468,7 +503,10 @@ impl KaziNear {
     // Client Rating
 
         // Create a new client rating entry
-        pub fn create_client_rating(&mut self, rating_id: u128,rating: ClientRatings) {
+        pub fn create_client_rating(&mut self,mut rating_id: u128,mut rating: ClientRatings) {
+            let new_rating_id = self.client_ratings_counter + 1;
+            self.client_ratings_counter += 1;
+            rating.rating_id = new_rating_id;
             self.client_ratings.insert(rating_id, rating);
         }
 
@@ -540,7 +578,10 @@ impl KaziNear {
 
 
         // Create a new freelancer rating entry
-        pub fn create_freelancer_rating(&mut self, rating_id: u128, rating: FreelancerRating) {
+        pub fn create_freelancer_rating(&mut self,mut rating_id: u128,mut rating: FreelancerRating) {
+            let new_rating_id = self.freelancer_ratings_counter + 1;
+            self.freelancer_ratings_counter += 1;
+            rating.rating_id = new_rating_id;
             self.freelancer_ratings.insert(rating_id, rating);
         }
 
@@ -657,9 +698,12 @@ impl KaziNear {
         }
 
         // Create a new freelancer bid for a job
-        pub fn create_freelancer_bid(&mut self, job_id: u128, bid_id: u128, account_id: AccountId, bid: FreelancerBid) -> bool {
+        pub fn create_freelancer_bid(&mut self, job_id: u128,mut bid_id: u128, account_id: AccountId,mut bid: FreelancerBid) -> bool {
         if let Some(client_job) = self.client_jobs.get(&job_id) {
             if client_job.bid_available && bid.budget <= client_job.project_budget {
+                let new_bid_id = self.bids_counter + 1;
+                self.bids_counter += 1;
+                bid.bid_id = new_bid_id;
                 self.freelancer_bids.insert(bid_id, bid);
                 return true; // Bid created successfully
             }
@@ -730,8 +774,8 @@ impl KaziNear {
         pub fn create_project_milestone(
         &mut self,
         bid_id: u128,
-        milestone_id: u128,
-        milestone: ProjectMilestone,
+        mut milestone_id: u128,
+        mut milestone: ProjectMilestone,
         ) -> bool {
         // Check if the bid exists and is approved
         if let Some(bid) = self.freelancer_bids.get(&bid_id) {
@@ -742,6 +786,9 @@ impl KaziNear {
             // Check if the milestone budget is within the bid budget
             if milestone.milestone_budget <= bid.budget {
                 // Insert the milestone into the project milestones
+                let new_milestone_id = self.milestones_counter + 1;
+                self.milestones_counter += 1;
+                milestone.milestone_id = new_milestone_id;
                 self.project_milestones.insert(milestone_id, milestone);
                 return true; // Milestone created successfully
             }
