@@ -777,9 +777,9 @@ impl KaziNear {
                                 let transaction = Transaction {
                                     transaction_id,
                                     from: contract_address,
-                                    to: env::predecessor_account_id(),
+                                    to: bid.account_id.clone(),
                                     transaction_purpose: "Payment - milestone completed".to_string(),
-                                    transaction_amount: total_amount.clone(),
+                                    transaction_amount: milestone.milestone_budget.clone(),
                                     timestamp: env::block_timestamp(), // Use the counter as a timestamp
                                     transaction_status: "Complete".to_string(),
                                 };
@@ -2690,6 +2690,22 @@ mod tests {
             // Attach the job's budget as the deposit when creating the client job
             // let attached_deposit = job.project_budget; // Deposit equals the job's budget
             contract.create_client_job(job_id, job.clone());
+
+
+            let created_transaction = contract.get_transaction(1);
+
+            let contract_address = env::current_account_id();
+        
+            
+            assert_eq!(created_transaction, Some(Transaction {
+                transaction_id: 1,
+                from: user.clone(),
+                to: contract_address, // Modify this to match your contract's logic
+                transaction_purpose: "Client Job Creation".to_string(),
+                transaction_amount: budget.clone(),
+                timestamp: env::block_timestamp(), // Modify this to match your contract's logic
+                transaction_status: "Escrow".to_string(),
+            }));
         
             // Create a sample freelancer bid and add it to the contract
             let bid_id = 1;
@@ -2760,6 +2776,21 @@ mod tests {
             // Verify that the milestone is marked as approved
             let approved_milestone = contract.get_project_milestone(milestone_id);
             assert_eq!(approved_milestone.unwrap().milestone_work_approved, true);
+
+            let created_transaction = contract.get_transaction(2);
+
+            let contract_address = env::current_account_id();
+        
+            
+            assert_eq!(created_transaction, Some(Transaction {
+                transaction_id: 2,
+                from: contract_address,
+                to: bid.account_id.clone(),
+                transaction_purpose: "Payment - milestone completed".to_string(),
+                transaction_amount: milestone.milestone_budget.clone(),
+                timestamp: env::block_timestamp(), // Use the counter as a timestamp
+                transaction_status: "Complete".to_string(),
+            }));
         
             // Verify that the funds are transferred to the freelancer's account
             // You can add assertions based on your contract's logic and expectations
