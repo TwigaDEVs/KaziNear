@@ -23,6 +23,7 @@ import {
   StatHelpText,
   StatArrow,
   StatGroup,
+  Badge,
 } from '@chakra-ui/react'
 import { MdLocalShipping } from 'react-icons/md'
 import React, { useEffect, useState } from 'react';
@@ -32,11 +33,8 @@ export default function TransactionsCard({ isSignedIn, wallet ,contractId}) {
   const [transactions,setTransactions] = useState([]);
 
   useEffect(() => {
-  
+      
     getTransactions().then(setTransactions);
-    // newConnectBalance.nearConnect().then(setAccBalance);
-    // viewProfile().then((data) => (setUserProfile(data)));
-    // ;
 
   }
   , []);
@@ -73,6 +71,7 @@ export default function TransactionsCard({ isSignedIn, wallet ,contractId}) {
             divider={
               <StackDivider borderColor={useColorModeValue('gray.200', 'gray.600')} />
             }>
+           
             <Box>
               <Text
                 fontSize={{ base: '16px', lg: '18px' }}
@@ -82,15 +81,22 @@ export default function TransactionsCard({ isSignedIn, wallet ,contractId}) {
                 mb={'4'}>
                 --------------
               </Text>
-
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
+              {Object.keys(transactions).map((transaction, index) => (
+              <SimpleGrid key={index} columns={{ base: 1, md: 2 }} spacing={10}>
                 <Stat>
-                    <StatLabel>Collected Fees</StatLabel>
-                    <StatNumber>£0.00</StatNumber>
-                    <StatHelpText>Feb 12 - Feb 28</StatHelpText>
+                    <StatLabel>{transactions[transaction].transaction_purpose}</StatLabel>
+                    <StatLabel color={"grey"}>from: {transactions[transaction].from}</StatLabel>
+                    <StatNumber fontSize={15} display={"flex"} >Amount: {transactions[transaction].transaction_amount/1000000000000000000000000} <StatLabel marginLeft={1} color={'green'}>NEAR</StatLabel></StatNumber> 
+                    <StatLabel color={"grey"}>to: {transactions[transaction].to}</StatLabel>
+                    <StatHelpText>{new Date(transactions[transaction].timestamp/1000000).toLocaleString()}</StatHelpText>
+                     <Badge variant='outline' colorScheme='green'>
+                      {transactions[transaction].transaction_status}
+                    </Badge>
                 </Stat>
               </SimpleGrid>
+               ))}
             </Box>
+           
             <Box>
  
             </Box>
