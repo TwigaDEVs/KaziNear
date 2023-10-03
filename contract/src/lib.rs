@@ -159,6 +159,7 @@ pub struct KaziNear{
   client_ratings: HashMap<u128, ClientRatings>,
   freelancer_ratings: HashMap<u128, FreelancerRating>,
   transactions: HashMap<u128, Transaction>,
+  chat_accounts: HashMap<AccountId, u128>,
   commission_fee:u128,
   transaction_counter: u128,
   portfolio_counter:u128,
@@ -170,6 +171,7 @@ pub struct KaziNear{
   client_ratings_counter:u128,
   freelancer_ratings_counter:u128,
   dispute_counter:u128,
+  contact_counter:u128,
 }
 
 
@@ -187,6 +189,7 @@ impl Default for KaziNear{
       client_ratings:HashMap::new(),
       freelancer_ratings:HashMap::new(),
       transactions:HashMap::new(),
+      chat_accounts:HashMap::new(),
       commission_fee:2,
       transaction_counter:0,
       portfolio_counter:0,
@@ -198,6 +201,7 @@ impl Default for KaziNear{
       client_ratings_counter:0,
       freelancer_ratings_counter:0,
       dispute_counter:0,
+      contact_counter:0,
     }
   }
 }
@@ -461,8 +465,20 @@ impl KaziNear {
         pub fn create_chat(&mut self,mut chat_id: u128,mut  chat: Chat) {
             let new_chat_id = self.chats_counter + 1;
             self.chats_counter += 1;
-            chat.chat_id = new_chat_id;
-            self.chats.insert(chat_id, chat);
+            chat.chat_id = new_chat_id.clone();
+            let receiver_id = chat.receiver.clone(); 
+
+            self.chats.insert(new_chat_id, chat);
+
+            let contact_id = self.contact_counter +1;
+            self.contact_counter +=1;
+
+            
+            if !self.chat_accounts.contains_key(&receiver_id) {
+                // If it doesn't exist, add it to the HashMap
+                self.chat_accounts.insert(receiver_id.clone(), contact_id); // Replace AccountId with the actual value
+            }
+
         }
 
         // Read a chat entry
@@ -506,8 +522,8 @@ impl KaziNear {
         pub fn create_client_rating(&mut self,mut rating_id: u128,mut rating: ClientRatings) {
             let new_rating_id = self.client_ratings_counter + 1;
             self.client_ratings_counter += 1;
-            rating.rating_id = new_rating_id;
-            self.client_ratings.insert(rating_id, rating);
+            rating.rating_id = new_rating_id.clone();
+            self.client_ratings.insert(new_rating_id, rating);
         }
 
         // Read a client rating entry by account ID
@@ -581,8 +597,8 @@ impl KaziNear {
         pub fn create_freelancer_rating(&mut self,mut rating_id: u128,mut rating: FreelancerRating) {
             let new_rating_id = self.freelancer_ratings_counter + 1;
             self.freelancer_ratings_counter += 1;
-            rating.rating_id = new_rating_id;
-            self.freelancer_ratings.insert(rating_id, rating);
+            rating.rating_id = new_rating_id.clone();
+            self.freelancer_ratings.insert(new_rating_id, rating);
         }
 
         // Read a freelancer rating entry by account ID
@@ -703,8 +719,8 @@ impl KaziNear {
             if client_job.bid_available && bid.budget <= client_job.project_budget {
                 let new_bid_id = self.bids_counter + 1;
                 self.bids_counter += 1;
-                bid.bid_id = new_bid_id;
-                self.freelancer_bids.insert(bid_id, bid);
+                bid.bid_id = new_bid_id.clone();
+                self.freelancer_bids.insert(new_bid_id, bid);
                 return true; // Bid created successfully
             }
         }
@@ -788,8 +804,8 @@ impl KaziNear {
                 // Insert the milestone into the project milestones
                 let new_milestone_id = self.milestones_counter + 1;
                 self.milestones_counter += 1;
-                milestone.milestone_id = new_milestone_id;
-                self.project_milestones.insert(milestone_id, milestone);
+                milestone.milestone_id = new_milestone_id.clone();
+                self.project_milestones.insert(new_milestone_id, milestone);
                 return true; // Milestone created successfully
             }
         }
@@ -898,6 +914,25 @@ impl KaziNear {
         pub fn get_total_transactions(&self) -> usize {
             self.transactions.len()
         }
+
+        // Get all chats
+        pub fn get_all_chat_accounts(&self) -> &HashMap<AccountId, u128> {
+            &self.chat_accounts
+        }
+
+        // Get all transactions
+                // Get all jobs for a specific account
+        pub fn get_transactions_for_account(&self, account_id: AccountId) -> Vec<Transaction> {
+            let mut result = Vec::new();
+            for transaction in self.transactions.values() {
+                if transaction.from == account_id || transaction.to == account_id{
+                    result.push(transaction.clone());
+                }
+            }
+            result
+        }
+
+        
 
 }
 
@@ -1891,6 +1926,9 @@ mod tests {
 
        
         assert_eq!(total_chats, 2);
+
+        let all_chat_accounts = contract.get_all_chat_accounts();
+        assert_eq!(all_chat_accounts.len(), 2);
     }
 
 

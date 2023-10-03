@@ -25,28 +25,46 @@ import {
   StatGroup,
 } from '@chakra-ui/react'
 import { MdLocalShipping } from 'react-icons/md'
+import React, { useEffect, useState } from 'react';
 
-export default function TransactionsCard() {
+export default function TransactionsCard({ isSignedIn, wallet ,contractId}) {
+
+  const [transactions,setTransactions] = useState([]);
+
+  useEffect(() => {
+  
+    getTransactions().then(setTransactions);
+    // newConnectBalance.nearConnect().then(setAccBalance);
+    // viewProfile().then((data) => (setUserProfile(data)));
+    // ;
+
+  }
+  , []);
+
+  function getTransactions() {
+		console.log(contractId)
+    const user_account = wallet.accountId;
+    return wallet.viewMethod({ method: "get_transactions_for_account", args: {account_id:user_account}, contractId });
+
+	
+	  }
+
+     console.log(transactions);
+
   return (
     <Container maxW={'7xl'}>
       <SimpleGrid
         columns={{ base: 1, lg: 1 }}
         spacing={{ base: 8, md: 10 }}
-        py={{ base: 18, md: 24 }}>
-        <Stack spacing={{ base: 6, md: 10 }}>
+        py={{ base: 10, md: 10 }}>
+        <Stack spacing={{ base: 6, md: 6 }}>
           <Box as={'header'}>
             <Heading
               lineHeight={1.1}
               fontWeight={600}
-              fontSize={{ base: '2xl', sm: '4xl', lg: '5xl' }}>
-              Automatic Watch
+              fontSize={{ base: '2xl', sm: '2xl', lg: '2xl' }}>
+              All Transactions
             </Heading>
-            <Text
-              color={useColorModeValue('gray.900', 'gray.400')}
-              fontWeight={300}
-              fontSize={'2xl'}>
-              $350.00 USD
-            </Text>
           </Box>
 
           <Stack
@@ -55,20 +73,6 @@ export default function TransactionsCard() {
             divider={
               <StackDivider borderColor={useColorModeValue('gray.200', 'gray.600')} />
             }>
-            <VStack spacing={{ base: 4, sm: 6 }}>
-              <Text
-                color={useColorModeValue('gray.500', 'gray.400')}
-                fontSize={'2xl'}
-                fontWeight={'300'}>
-                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
-                eirmod tempor invidunt ut labore
-              </Text>
-              <Text fontSize={'lg'}>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad aliquid amet
-                at delectus doloribus dolorum expedita hic, ipsum maxime modi nam officiis
-                porro, quae, quisquam quos reprehenderit velit? Natus, totam.
-              </Text>
-            </VStack>
             <Box>
               <Text
                 fontSize={{ base: '16px', lg: '18px' }}
@@ -76,7 +80,7 @@ export default function TransactionsCard() {
                 fontWeight={'500'}
                 textTransform={'uppercase'}
                 mb={'4'}>
-                Features
+                --------------
               </Text>
 
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>

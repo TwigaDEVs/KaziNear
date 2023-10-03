@@ -58,12 +58,12 @@ export default function App({ isSignedIn, contractId, wallet }) {
         <Routes>
           {/* <Route path="/" element = {<Home />} /> */}
           <Route path="/" element = {<Landing isSignedIn={isSignedIn} wallet={wallet}/>} />
-          <Route path="/freelancer" element = {<Profile isSignedIn={isSignedIn} wallet={wallet}/>} />
+          <Route path="/freelancer" element = {<Profile isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
           <Route path="/jobs" element = {<Jobs isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
-          <Route path="/chats" element = {<Chats isSignedIn={isSignedIn} wallet={wallet}/>} />
-          <Route path="/transactions" element = {<Transactions isSignedIn={isSignedIn} wallet={wallet}/>} />
+          <Route path="/chats" element = {<Chats isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
+          <Route path="/transactions" element = {<Transactions isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
           <Route path="/job/:id" element = {<JobDetailsPage isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
-          <Route path="/chat/:id" element = {<ChatsDetailsPage wallet={wallet} isSignedIn={isSignedIn}/>} />
+          <Route path="/chat/:id" element = {<ChatsDetailsPage isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
         </Routes>
 
       </div>
