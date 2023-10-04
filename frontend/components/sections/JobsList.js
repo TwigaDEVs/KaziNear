@@ -36,6 +36,7 @@ import {
   Td,
   TableCaption,
   TableContainer,
+  SpaceProps,
 } from '@chakra-ui/react';
 
 import { Link } from "react-router-dom";
@@ -89,7 +90,7 @@ function JobOwner(props) {
 
 function JobList({ isSignedIn, wallet ,contractId}) {
 
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isOpen, onOpen, onClose } = useDisclosure();
   
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
@@ -318,7 +319,7 @@ function JobList({ isSignedIn, wallet ,contractId}) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>Upload Images</FormLabel>
+              <FormLabel>Upload Files</FormLabel>
               <input type="file" multiple onChange={(e) => OnChangeMFile(Array.from(e.target.files))}/>
             </FormControl>
           </ModalBody>
@@ -330,7 +331,7 @@ function JobList({ isSignedIn, wallet ,contractId}) {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+      </>
       <Heading as="h5"  padding="0.5rem 0 0">Jobs</Heading>
       {jobs.length > 0 ? (
         jobs.map((job, index) =>
@@ -403,7 +404,7 @@ function JobList({ isSignedIn, wallet ,contractId}) {
                   <div></div>
                   ) : (
                     // Render the "Removed" badge when the job is not available
-                    <span style={{paddingLeft:'3'}}>
+                    <span style={{paddingLeft:'3',marginLeft:'3'}}>
                       <Badge colorScheme='red'>Not Available</Badge>
                     </span>
                   )}
