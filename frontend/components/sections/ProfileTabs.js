@@ -40,10 +40,11 @@ import {
   Wrap,
   WrapItem,
   SpaceProps,
+  Link,
 } from '@chakra-ui/react';
 import { MdLocalShipping } from 'react-icons/md';
 import * as nearAPI from "near-api-js";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import Select from 'react-select';
 import { uploadToIPFS } from "~/Infura";
 import { utils } from 'near-api-js';
@@ -104,10 +105,31 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
       is_profile_public: true,
     });
 
+    // pub portfolio_id:u128,
+    // pub account_id: AccountId,
+    // pub images: Vec<String>,
+    // pub videos: Vec<String>,
+    // pub task_url: String,
+    // pub description: String,
+
+    const [portfolioFormData, setPortfolioFormData] = useState({
+      portfolio_id:0,
+      account_id: wallet.accountId,
+      images: [],
+      videos: [],
+      task_url:'',
+      description:'',
+    });
+
 
     const handleFreelancerInputChange = (e) => {
       const { name, value } = e.target;
       setFreelancerFormData({ ...freelancerFormData, [name]: value });
+    };
+
+    const handlePortfolioInputChange = (e) => {
+      const { name, value } = e.target;
+      setPortfolioFormData({ ...portfolioFormData, [name]: value });
     };
   
     const handleFreelancerSkillChange = (selectedSkills) => {
@@ -131,6 +153,34 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
       // Placeholder logic: Handle changes, such as updating URLs
       console.log("Uploaded URLs:", uploadedUrls);
       setFreelancerFormData({ ...freelancerFormData, profile_image: uploadedUrls }); // Update the images array in formData
+    };
+
+    const OnChangeVideosFile = async (selectedFiles) => {
+      // Placeholder logic: Upload files to IPFS
+      const uploadedUrls = [];
+  
+      for (const file of selectedFiles) {
+        const response = await uploadToIPFS(file); // Your actual IPFS upload function
+        uploadedUrls.push(response);
+      }
+  
+      // Placeholder logic: Handle changes, such as updating URLs
+      console.log("Uploaded URLs:", uploadedUrls);
+      setPortfolioFormData({ ...portfolioFormData, videos: uploadedUrls }); // Update the images array in formData
+    };
+  
+  const OnChangeImagesFile = async (selectedFiles) => {
+      // Placeholder logic: Upload files to IPFS
+      const uploadedUrls = [];
+  
+      for (const file of selectedFiles) {
+        const response = await uploadToIPFS(file); // Your actual IPFS upload function
+        uploadedUrls.push(response);
+      }
+  
+      // Placeholder logic: Handle changes, such as updating URLs
+      console.log("Uploaded URLs:", uploadedUrls);
+      setPortfolioFormData({ ...portfolioFormData, images: uploadedUrls }); // Update the images array in formData
     };
   
   
@@ -255,6 +305,37 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
 
     onClose(); // Close the modal after posting the job
   };
+
+  const handlePortfolioSubmit = async () => {
+    // Call the NEAR Protocol function to post the job
+    // await postJobToSmartContract(formData);
+
+    // const jsonData = JSON.stringify(updatedFormData);
+
+
+      console.log(portfolioFormData);
+
+        wallet
+        .callMethod({
+        method: "create_freelancer_portfolio",
+        args: {
+          portfolio_id: portfolioFormData.portfolio_id,
+          portfolio:portfolioFormData,
+        },
+        contractId:contractId
+        })
+        .then(async () => {
+        return getPortfolios();
+        })
+        .then(setPortfolioFormData)
+        .finally(() => {
+        setUiPleaseWait(false);
+        });
+    
+
+    onClose(); // Close the modal after posting the job
+  };
+
 
   console.log(freelancer);
   console.log(portfolios);
@@ -464,13 +545,185 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
         </TabPanel>
         <TabPanel>
         {portfolios.length === 0 ? (
-        <p>No portfolio found - add</p>
+        
+        <>
+        <p>No portfolio found - </p>
+          <Button onClick={onOpen}>add</Button>
+            <Modal
+              isOpen={isOpen}
+              onClose={onClose}
+              initialFocusRef={initialRef}
+              finalFocusRef={finalRef}
+            >
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Add Portfolio</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody pb={6}>
+                  <FormControl>
+                    <FormLabel>Task URL</FormLabel>
+                    <Input
+                      type="text"
+                      name="task_url"
+                      placeholder="task url"
+                      value={portfolioFormData.task_url}
+                      onChange={handlePortfolioInputChange}
+                    />
+                  </FormControl>
+
+                  <FormControl mt={4}>
+                    <FormLabel>Descriptiom</FormLabel>
+                    <Textarea
+                      name="description"
+                      placeholder="description"
+                      value={portfolioFormData.description}
+                      onChange={handlePortfolioInputChange}
+                      size="sm"
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Upload Files</FormLabel>
+                    <input type="file" onChange={(e) => OnChangeImagesFile(Array.from(e.target.files))}/>
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel>Upload videos</FormLabel>
+                    <input type="file" onChange={(e) => OnChangeVideosFile(Array.from(e.target.files))}/>
+                  </FormControl>
+
+                </ModalBody>
+                <ModalFooter>
+                  <Button colorScheme="blue" mr={3} onClick={handlePortfolioSubmit}>
+                    Post
+                  </Button>
+                  <Button onClick={onClose}>Cancel</Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+        </>
       ) : (
         <div>
-          {/* Display freelancer info */}
-          <p>Name: {freelancer.name}</p>
-          <p>Email: {freelancer.email}</p>
-          {/* Add more info fields as needed */}
+      {portfolios.length > 0 ? (
+        portfolios.map((portfolio, index) => (
+          <>
+
+                <Stack spacing={{ base: 6, md: 10 }} key={index}>
+                <Button onClick={onOpen}>add new</Button>
+            <Modal
+              isOpen={isOpen}
+              onClose={onClose}
+              initialFocusRef={initialRef}
+              finalFocusRef={finalRef}
+            >
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Add Portfolio</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody pb={6}>
+                  <FormControl>
+                    <FormLabel>Task URL</FormLabel>
+                    <Input
+                      type="text"
+                      name="task_url"
+                      placeholder="task url"
+                      value={portfolioFormData.task_url}
+                      onChange={handlePortfolioInputChange}
+                    />
+                  </FormControl>
+
+                  <FormControl mt={4}>
+                    <FormLabel>Descriptiom</FormLabel>
+                    <Textarea
+                      name="description"
+                      placeholder="description"
+                      value={portfolioFormData.description}
+                      onChange={handlePortfolioInputChange}
+                      size="sm"
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Upload Files</FormLabel>
+                    <input type="file" onChange={(e) => OnChangeImagesFile(Array.from(e.target.files))}/>
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel>Upload videos</FormLabel>
+                    <input type="file" onChange={(e) => OnChangeVideosFile(Array.from(e.target.files))}/>
+                  </FormControl>
+
+                </ModalBody>
+                <ModalFooter>
+                  <Button colorScheme="blue" mr={3} onClick={handlePortfolioSubmit}>
+                    Post
+                  </Button>
+                  <Button onClick={onClose}>Cancel</Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+                  <Box as={'header'}>
+                  
+                  <Link href={portfolio.task_url} color={'green'} isExternal>
+                    Task url
+                  </Link>
+                  </Box>
+
+                  <Stack
+                    spacing={{ base: 4, sm: 6 }}
+                    direction={'column'}
+                    divider={
+                      <StackDivider borderColor={useColorModeValue('gray.200', 'gray.600')} />
+                    }>
+                    <VStack spacing={{ base: 4, sm: 6 }}>
+                      <Text fontSize={'lg'}>
+                        {portfolio.description}
+                      </Text>
+                    </VStack>
+                    <Box>
+                      <Text
+                        fontSize={{ base: '16px', lg: '18px' }}
+                        color={useColorModeValue('yellow.500', 'yellow.300')}
+                        fontWeight={'500'}
+                        textTransform={'uppercase'}
+                        mb={'4'}>
+                        Files
+                      </Text>
+
+                      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
+                        <List spacing={2}>
+                        {portfolio && portfolio.images && portfolio.images.map((file, fileIndex) => (
+                          <ListItem key={fileIndex}>
+                            <a href={file} target="_blank" rel="noopener noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>
+                              File {fileIndex + 1}
+                            </a>
+                          </ListItem>
+                        ))}
+
+                        </List>
+                        <List spacing={2}>
+                        {portfolio && portfolio.videos && portfolio.videos.map((file, fileIndex) => (
+                          <ListItem key={fileIndex}>
+                            <a href={file} target="_blank" rel="noopener noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>
+                              File {fileIndex + 1}
+                            </a>
+                          </ListItem>
+                        ))}
+                        </List>
+                      </SimpleGrid>
+                    </Box>
+                    <Box>
+                    </Box>
+                  </Stack>
+
+                </Stack>
+             
+           
+          </>
+        ))
+        ) : (
+          <p>No chats found</p>
+        )}
         </div>
       )}
         </TabPanel>
