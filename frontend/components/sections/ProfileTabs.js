@@ -22,14 +22,40 @@ import {
   TabPanels,
   Tab,
   TabPanel,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Input,
+  Textarea,
+  Divider,
+  HStack,
+  Tag,
+  Wrap,
+  WrapItem,
+  SpaceProps,
 } from '@chakra-ui/react';
 import { MdLocalShipping } from 'react-icons/md';
 import * as nearAPI from "near-api-js";
+import { Link } from "react-router-dom";
+import Select from 'react-select';
+import { uploadToIPFS } from "~/Infura";
+import { utils } from 'near-api-js';
 
 export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const initialRef = React.useRef(null);
+  const finalRef = React.useRef(null);
+
   console.log(wallet.walletSelector.options.network);
-  const [freelancer,setFreelancer] = useState(null);
+  const [freelancer,setFreelancer] = useState();
   const [portfolios,setPortfolios] = useState([]);
   const [experiences,setExperiences] = useState([]);
   const [bal, setBalance] = useState("");
@@ -37,6 +63,8 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
   const { keyStores } = nearAPI;
   const { connect } = nearAPI;
   const myKeyStore = new keyStores.BrowserLocalStorageKeyStore();
+  const [uiPleaseWait, setUiPleaseWait] = useState(true);
+
 
 
   const connectionConfig = {
@@ -54,7 +82,70 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
   const near = "1000000000000000000000000";
 
 
+    // pub account_id: AccountId,
+    // pub profile_image: String,
+    // pub full_name: String,
+    // pub hourly_rate: u128,
+    // pub profession: String,
+    // pub payment_preference: String,
+    // pub skills: Vec<String>,
+    // pub profile_rating: u128,
+    // pub is_profile_public: bool,
 
+    const [freelancerFormData, setFreelancerFormData] = useState({
+      account_id: wallet.accountId,
+      profile_image: [],
+      full_name: '',
+      hourly_rate: 0,
+      profession:'',
+      payment_preference:'',
+      skills: [],
+      profile_rating:0,
+      is_profile_public: true,
+    });
+
+
+    const handleFreelancerInputChange = (e) => {
+      const { name, value } = e.target;
+      setFreelancerFormData({ ...freelancerFormData, [name]: value });
+    };
+  
+    const handleFreelancerSkillChange = (selectedSkills) => {
+      setFreelancerFormData({ ...freelancerFormData, skills: selectedSkills });
+    };
+  
+    // const handleSkillChange = (selectedSkills) => {
+    //   setFormData({ ...formData, skill_requirements: selectedSkills.map((skill) => skill.label) });
+    // };
+    
+  
+    const OnChangeMFile = async (selectedFiles) => {
+      // Placeholder logic: Upload files to IPFS
+      const uploadedUrls = [];
+  
+      for (const file of selectedFiles) {
+        const response = await uploadToIPFS(file); // Your actual IPFS upload function
+        uploadedUrls.push(response);
+      }
+  
+      // Placeholder logic: Handle changes, such as updating URLs
+      console.log("Uploaded URLs:", uploadedUrls);
+      setFreelancerFormData({ ...freelancerFormData, profile_image: uploadedUrls }); // Update the images array in formData
+    };
+  
+  
+  
+    const skillOptions = [
+      { value: "html", label: "HTML" },
+      { value: "css", label: "CSS" },
+      { value: "javascript", label: "JavaScript" },
+      { value: "react", label: "React" },
+      { value: "python", label: "Python" },
+      { value: "java", label: "Java" },
+      { value: "csharp", label: "C#" },
+      { value: "ruby", label: "Ruby" },
+      // Add more programming-related skills as needed
+    ];
 
   useEffect(() => {
     // Function to perform the async action
@@ -116,7 +207,56 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
 
   }
 
+  const handleFreelanceSubmit = async () => {
+    // Call the NEAR Protocol function to post the job
+    // await postJobToSmartContract(formData);
+ 
+	
+    const skillLabels = freelancerFormData.skills.map((skill) => skill.label);
+    
 
+    console.log(skillLabels);
+
+      // Create a copy of formData with updated skill_requirements
+      const updatedFormData = {
+        ...freelancerFormData,
+        profile_image:freelancerFormData.profile_image[0],
+        skills: skillLabels,
+        hourly_rate:Number(freelancerFormData.hourly_rate),
+        profile_rating:Number(freelancerFormData.profile_rating),
+      };
+      
+
+    console.log("freelancer data",updatedFormData);
+
+    // const jsonData = JSON.stringify(updatedFormData);
+
+        wallet
+        .callMethod({
+        method: "create_freelancer",
+        args: {
+          account_id: updatedFormData.account_id,
+          freelancer:updatedFormData,
+        },
+        contractId:contractId
+        })
+        .then(async () => {
+        return getFreelancer();
+        })
+        .then(setFreelancer)
+        .finally(() => {
+        setUiPleaseWait(false);
+        });
+      
+
+
+    // Update formData with the modified copy
+    setFreelancerFormData(updatedFormData);
+
+    onClose(); // Close the modal after posting the job
+  };
+
+  console.log(freelancer);
   console.log(portfolios);
   console.log(experiences);
 
@@ -148,7 +288,10 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
                 {wallet.accountId}
               </Heading>
             ) : (
-              <p>Please sign in to see the heading.</p>
+              <>
+                <p>Please sign in to see the heading.</p>
+              </>
+              
             )}
             <Text
               color={useColorModeValue('gray.900', 'gray.400')}
@@ -157,10 +300,91 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
               {(bal.available/near).toFixed(5)}  NEAR
             </Text>
           </Box>
-          {freelancer === null ? (
-        <p>Please update your details</p>
-      ) : freelancer === undefined || freelancer.length === 0 ? (
-        <p>Please update your details</p>
+          {freelancer === undefined || freelancer === null? (
+            <>
+            <p>Please update your details</p>
+              <Button onClick={onOpen}>Update</Button>
+                <Modal
+                  isOpen={isOpen}
+                  onClose={onClose}
+                  initialFocusRef={initialRef}
+                  finalFocusRef={finalRef}
+                >
+                  <ModalOverlay />
+                  <ModalContent>
+                    <ModalHeader>Add</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody pb={6}>
+                      <FormControl>
+                        <FormLabel>Full Name</FormLabel>
+                        <Input
+                          type="text"
+                          name="full_name"
+                          placeholder="full name"
+                          value={freelancerFormData.full_name}
+                          onChange={handleFreelancerInputChange}
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel>Hourly rate</FormLabel>
+                        <Input
+                          type="number"
+                          name="hourly_rate"
+                          placeholder="hourly rate"
+                          value={freelancerFormData.hourly_rate}
+                          onChange={handleFreelancerInputChange}
+                        />
+                      </FormControl>
+
+                      <FormControl mt={4}>
+                        <FormLabel>Profession</FormLabel>
+                        <Textarea
+                          name="profession"
+                          placeholder="profession"
+                          value={freelancerFormData.profession}
+                          onChange={handleFreelancerInputChange}
+                          size="sm"
+                        />
+                      </FormControl>
+
+                      <FormControl mt={4}>
+                        <FormLabel> Payment preference</FormLabel>
+                        <Textarea
+                        name="payment_preference"
+                        placeholder="payment preference"
+                        value={freelancerFormData.payment_preference}
+                        onChange={handleFreelancerInputChange}
+                        size="sm"
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel>Skills</FormLabel>
+                        <Select
+                          isMulti
+                          options={skillOptions}
+                          value={freelancerFormData.skills}
+                          onChange={handleFreelancerSkillChange}
+                          placeholder="Select skills..."
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel>Upload Files</FormLabel>
+                        <input type="file" onChange={(e) => OnChangeMFile(Array.from(e.target.files))}/>
+                      </FormControl>
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button colorScheme="blue" mr={3} onClick={handleFreelanceSubmit}>
+                        Post
+                      </Button>
+                      <Button onClick={onClose}>Cancel</Button>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
+            </>
+        
       ) : (
         <>
           <Stack
@@ -170,18 +394,17 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
               <StackDivider borderColor={useColorModeValue('gray.200', 'gray.600')} />
             }>
             <VStack spacing={{ base: 4, sm: 6 }}>
-              <Text
-                color={useColorModeValue('gray.500', 'gray.400')}
-                fontSize={'2xl'}
-                fontWeight={'300'}>
-                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
-                eirmod tempor invidunt ut labore
-              </Text>
-              <Text fontSize={'lg'}>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad aliquid amet
-                at delectus doloribus dolorum expedita hic, ipsum maxime modi nam officiis
-                porro, quae, quisquam quos reprehenderit velit? Natus, totam.
-              </Text>
+            <HStack marginTop="2" spacing="2" display="flex" alignItems="center">
+              <Image
+                borderRadius="full"
+                boxSize="40px"
+                src={`${freelancer.profile_image}`}
+                alt={`Avatar of ${freelancer.full_name}`}
+              />
+              <Text fontWeight="medium">{freelancer.full_name}</Text>
+              <Text>—</Text>
+              <Text>{freelancer.account_id}</Text>
+            </HStack>
             </VStack>
             <Box>
               <Text
@@ -190,19 +413,19 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
                 fontWeight={'500'}
                 textTransform={'uppercase'}
                 mb={'4'}>
-                Features
+                Account Info
               </Text>
 
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
+              <SimpleGrid columns={{ base: 2, md: 2 }} spacing={10}>
                 <List spacing={2}>
-                  <ListItem>Chronograph</ListItem>
-                  <ListItem>Master Chronometer Certified</ListItem>
-                  <ListItem>Tachymeter</ListItem>
+                  <ListItem>Profession</ListItem>
+                  <ListItem>Payment Freelancer</ListItem>
+                  <ListItem>Hourly Rate</ListItem>
                 </List>
                 <List spacing={2}>
-                  <ListItem>Anti‑magnetic</ListItem>
-                  <ListItem>Chronometer</ListItem>
-                  <ListItem>Small seconds</ListItem>
+                  <ListItem color='blue'>{freelancer.profession}</ListItem>
+                  <ListItem color='blue'>{freelancer.payment_preference}</ListItem>
+                  <ListItem color='blue'>{freelancer.hourly_rate}</ListItem>
                 </List>
               </SimpleGrid>
             </Box>
@@ -213,77 +436,26 @@ export default function ProfileTabs({ isSignedIn, wallet ,contractId}) {
                 fontWeight={'500'}
                 textTransform={'uppercase'}
                 mb={'4'}>
-                Product Details
+                Skills
               </Text>
 
               <List spacing={2}>
                 <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Between lugs:
-                  </Text>{' '}
-                  20 mm
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Bracelet:
-                  </Text>{' '}
-                  leather strap
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Case:
-                  </Text>{' '}
-                  Steel
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Case diameter:
-                  </Text>{' '}
-                  42 mm
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Dial color:
-                  </Text>{' '}
-                  Black
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Crystal:
-                  </Text>{' '}
-                  Domed, scratch‑resistant sapphire crystal with anti‑reflective treatment
-                  inside
-                </ListItem>
-                <ListItem>
-                  <Text as={'span'} fontWeight={'bold'}>
-                    Water resistance:
-                  </Text>{' '}
-                  5 bar (50 metres / 167 feet)
+                {freelancer && freelancer.skills ? (
+                    freelancer.skills.map((skill, skillIndex) => (
+                      <div key={skillIndex}>
+                        <ListItem>{skill}</ListItem>
+                      </div>
+                    ))
+                  ) : (
+                    // Render a placeholder or loading message when job is undefined or skill_requirements is missing
+                    <div>Loading...</div>
+                  )}
                 </ListItem>
               </List>
             </Box>
           </Stack>
 
-          <Button
-            rounded={'none'}
-            w={'full'}
-            mt={8}
-            size={'lg'}
-            py={'7'}
-            bg={useColorModeValue('gray.900', 'gray.50')}
-            color={useColorModeValue('white', 'gray.900')}
-            textTransform={'uppercase'}
-            _hover={{
-              transform: 'translateY(2px)',
-              boxShadow: 'lg',
-            }}>
-            Add to cart
-          </Button>
-
-          <Stack direction="row" alignItems="center" justifyContent={'center'}>
-            <MdLocalShipping />
-            <Text>2-3 business days delivery</Text>
-          </Stack>
           </>
           )}
         </VStack>

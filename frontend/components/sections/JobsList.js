@@ -332,7 +332,7 @@ function JobList({ isSignedIn, wallet ,contractId}) {
         </ModalContent>
       </Modal>
       </>
-      <Heading as="h5"  padding="0.5rem 0 0">Jobs</Heading>
+      <Heading as="h6"  padding="0.5rem 0 0">Jobs</Heading>
       {jobs.length > 0 ? (
         jobs.map((job, index) =>
         <Box
