@@ -22,6 +22,7 @@ import {
   List,
   useColorModeValue,
   } from '@chakra-ui/react'
+  
 import { FcLock,FcCheckmark,FcFile } from 'react-icons/fc'
 import { useParams} from 'react-router-dom';
 import React,{useState,useEffect} from 'react';
@@ -99,7 +100,7 @@ export default function ChatsDetails({ isSignedIn, wallet ,contractId}) {
     // Placeholder logic: Handle changes, such as updating URLs
     console.log("Uploaded URLs:", uploadedUrls);
     setFormData({ ...formData, attached_files: uploadedUrls }); // Update the images array in formData
-  };
+  }; 
 
 
 

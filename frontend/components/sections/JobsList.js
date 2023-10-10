@@ -176,6 +176,10 @@ function JobList({ isSignedIn, wallet ,contractId}) {
     { value: "java", label: "Java" },
     { value: "csharp", label: "C#" },
     { value: "ruby", label: "Ruby" },
+    { value: "rust", label: "Rust" },
+    { value: "solidity", label: "Solidity" },
+    { value: "cairo", label: "Cairo" },
+    { value: "truffle", label: "Truffle" },
     // Add more programming-related skills as needed
   ];
 
