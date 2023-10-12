@@ -112,7 +112,7 @@ export default function CryptoFreelancerTestimonials() {
             </TestimonialContent>
             <TestimonialAvatar
               src={
-                'https://images.unsplash.com/photo-1586297135537-94bc9ba060aa?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80'
+                'https://res.cloudinary.com/dufdzujik/image/upload/v1697103579/FUN_FOOD/user_1144709_intbgw.png'
               }
               name={'John Doe'}
               title={'Crypto Enthusiast'}
@@ -127,7 +127,7 @@ export default function CryptoFreelancerTestimonials() {
             </TestimonialContent>
             <TestimonialAvatar
               src={
-                'https://images.unsplash.com/photo-1586297135537-94bc9ba060aa?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80'
+                'https://res.cloudinary.com/dufdzujik/image/upload/v1697103579/FUN_FOOD/user_1144709_intbgw.png'
               }
               name={'Alice Smith'}
               title={'Cryptocurrency Investor'}
@@ -142,7 +142,7 @@ export default function CryptoFreelancerTestimonials() {
             </TestimonialContent>
             <TestimonialAvatar
               src={
-                'https://images.unsplash.com/photo-1586297135537-94bc9ba060aa?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80'
+                'https://res.cloudinary.com/dufdzujik/image/upload/v1697103579/FUN_FOOD/user_1144709_intbgw.png'
               }
               name={'Emma Johnson'}
               title={'Crypto Consultant'}

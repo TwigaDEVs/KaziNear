@@ -78,7 +78,7 @@ function JobOwner(props) {
       <Image
         borderRadius="full"
         boxSize="40px"
-        src="https://100k-faces.glitch.me/random-image"
+        src="https://res.cloudinary.com/dufdzujik/image/upload/v1697103579/FUN_FOOD/user_1144709_intbgw.png"
         alt={`Avatar of ${props.name}`}
       />
       <Text fontWeight="medium">{props.name}</Text>
