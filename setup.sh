@@ -1,17 +1,17 @@
-REPO="https://github.com/TwigaDEVs/kazikrypto.git" 
+REPO="https://github.com/TwigaDEVs/KaziNear.git" 
 
 # Branch name
-BRANCH="kazi"
+BRANCH="main"
 
 
 # Clone repo
 git clone  $REPO 
-cd  kazikrypto/
+cd  KaziNear/
 
-if [ -d "web-frontend" ]; then
+if [ -d "frontend" ]; then
 
   # Change directory
-  cd web-frontend
+  cd frontend
   
   # Install npm packages
   npm install
