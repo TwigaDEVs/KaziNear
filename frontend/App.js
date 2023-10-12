@@ -10,7 +10,6 @@ import Chats from "./pages/Chats";
 import Transactions from "./pages/Transactions"
 import JobDetailsPage from "./pages/JobDetails"
 import ChatsDetailsPage from './pages/ChatsDetailsPage';
-import RedirectToJobs from './pages/RedirectToJobs';
 
 
 
@@ -61,7 +60,6 @@ export default function App({ isSignedIn, contractId, wallet }) {
           <Route path="/" element = {<Landing isSignedIn={isSignedIn} wallet={wallet}/>} />
           <Route path="/freelancer" element = {<Profile isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
           <Route path="/jobs" element = {<Jobs isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
-          <Route path="/jobs" component={RedirectToJobs} />
           <Route path="/chats" element = {<Chats isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
           <Route path="/transactions" element = {<Transactions isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
           <Route path="/job/:id" element = {<JobDetailsPage isSignedIn={isSignedIn} wallet={wallet} contractId={contractId}/>} />
