@@ -1,6 +1,8 @@
 KaziNear-project
 ==================
 
+Live Link: https://kazi-near-ljl7cv7zc-twigadevs.vercel.app/
+
 This app was initialized with [create-near-app]
 
 Description: The use case involves building a freelancing platform on the NEAR blockchain Network to enable cross-chain functionality and seamless integration. The platform aims to connect freelancers and clients, facilitating secure and transparent transactions while leveraging the benefits of blockchain technology.
