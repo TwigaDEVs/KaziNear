@@ -338,7 +338,7 @@ function JobList({ isSignedIn, wallet ,contractId}) {
       </>
       <Heading as="h6"  padding="0.5rem 0 0">Jobs</Heading>
       {jobs.length > 0 ? (
-        jobs.map((job, index) =>
+        jobs.reverse().map((job, index) =>
         <Box
           key={index}
           marginTop={{ base: '1', sm: '5' }}
