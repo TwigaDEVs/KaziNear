@@ -189,6 +189,12 @@ const closeMilestoneModal = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleInputChangeMilestone = (e) => {
+    const { name, value } = e.target;
+    setFormDataMilestone({ ...formDataMilestone, [name]: value });
+  };
+
+
  
   const OnChangeMFile = async (selectedFiles) => {
     // Placeholder logic: Upload files to IPFS
@@ -270,7 +276,7 @@ const closeMilestoneModal = () => {
   };
 
 
-  const handleSubmitMilestone = async (job_id,bid_id) => {
+  const handleSubmitMilestone = async (bid_id) => {
     // Call the NEAR Protocol function to post the job
     // await postJobToSmartContract(formData);
     // const jsonData = JSON.stringify(updatedFormData);
@@ -297,6 +303,8 @@ const closeMilestoneModal = () => {
           milestone_duration: Number(formDataMilestone.milestone_duration),
           milestone_work_approved: false
         };
+
+        console.log(cleanMilestone,formData)
 
         wallet
         .callMethod({
@@ -530,7 +538,7 @@ const closeMilestoneModal = () => {
       <Tabs index={selectedTab} onChange={handleTabChange}>
         <TabList>
           <Tab _selected={{ color: 'white', bg: 'blue.500' }} color={'black'}>Bids</Tab>
-          <Tab _selected={{ color: 'white', bg: 'blue.500' }}  color={'black'}>Milestones</Tab>
+          <Tab _selected={{ color: 'white', bg: 'blue.500' }} isDisabled color={'black'}>Milestones</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -558,7 +566,7 @@ const closeMilestoneModal = () => {
               </span>
 
               {job.account_id === wallet.accountId || (bids[bid].account_id === wallet.accountId) ? (
-                  <Button onClick={() => handleTabChange(1,bids[bid].bid_id)}>Add Milestones</Button>
+                  <Button onClick={() => handleTabChange(1,bids[bid].bid_id)}>Milestones</Button>
                 ) : (
                   <></> // This can be an empty fragment or any other component
                 )}
@@ -603,7 +611,7 @@ const closeMilestoneModal = () => {
                             name="milestone_name"
                             placeholder="Name"
                             value={formDataMilestone.project_title}
-                            onChange={handleInputChange}
+                            onChange={handleInputChangeMilestone}
                           />
                         </FormControl>
 
@@ -613,7 +621,7 @@ const closeMilestoneModal = () => {
                             name="milestone_description"
                             placeholder="description"
                             value={formDataMilestone.project_description}
-                            onChange={handleInputChange}
+                            onChange={handleInputChangeMilestone}
                             size="sm"
                           />
                         </FormControl>
@@ -625,7 +633,7 @@ const closeMilestoneModal = () => {
                             name="milestone_duration"
                             placeholder="Duration in hours"
                             value={formDataMilestone.project_duration}
-                            onChange={handleInputChange}
+                            onChange={handleInputChangeMilestone}
                           />
                         </FormControl>
 
@@ -636,7 +644,7 @@ const closeMilestoneModal = () => {
                             name="milestone_budget"
                             placeholder="Enter amount"
                             value={formDataMilestone.project_budget}
-                            onChange={handleInputChange}
+                            onChange={handleInputChangeMilestone}
                           />
                         </FormControl>
 
