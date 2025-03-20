@@ -53,7 +53,29 @@ import { utils } from 'near-api-js';
 
 export default function JobDetails({ isSignedIn, wallet , contractId}) {
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // Add these state variables to manage different modals
+const [isBidModalOpen, setBidModalOpen] = useState(false);
+const [isMilestoneModalOpen, setMilestoneModalOpen] = useState(false);
+
+// Replace these functions with separate handlers for each modal
+const openBidModal = () => {
+  setBidModalOpen(true);
+};
+
+const closeBidModal = () => {
+  setBidModalOpen(false);
+};
+
+const openMilestoneModal = () => {
+  setMilestoneModalOpen(true);
+};
+
+const closeMilestoneModal = () => {
+  setMilestoneModalOpen(false);
+};
+
 
   const [job, setJob] = useState([]);
   const [bids, setBids] = useState([]);
@@ -185,12 +207,16 @@ export default function JobDetails({ isSignedIn, wallet , contractId}) {
     // await postJobToSmartContract(formData);
     // const jsonData = JSON.stringify(updatedFormData);
 
+    console.log("..........")
+
     
 
       const updatedFormData = {
         ...formData,
         budget: Number(formData.budget), // Convert project_budget to a number
       };
+
+      console.log("dgfdg",updatedFormData)
 
         wallet
         .callMethod({
@@ -247,12 +273,24 @@ export default function JobDetails({ isSignedIn, wallet , contractId}) {
     // await postJobToSmartContract(formData);
     // const jsonData = JSON.stringify(updatedFormData);
 
+        const cleanMilestone = {
+          job_id: Number(formDataMilestone.job_id),
+          bid_id: Number(selectedBidId),
+          milestone_id: 0, // The contract will assign this
+          milestone_name: formDataMilestone.milestone_name,
+          milestone_description: formDataMilestone.milestone_description,
+          milestone_budget: Number(formDataMilestone.milestone_budget),
+          milestone_duration: Number(formDataMilestone.milestone_duration),
+          milestone_work_approved: false
+        };
+
         wallet
         .callMethod({
-        method: "accept_freelancer_bid",
+        method: "create_project_milestone",
         args: {
-          job_id: job_id,
-          bid_id: bid_id
+          bid_id: cleanMilestone.bid_id,
+          milestone_id: cleanMilestone.milestone_id,
+          milestone: cleanMilestone // Pass the entire milestone object
         },
         contractId:contractId
         })
@@ -381,12 +419,12 @@ export default function JobDetails({ isSignedIn, wallet , contractId}) {
                 <ListItem>
                 {job.bid_available ? (
                         <>
-                        <Button onClick={onOpen} background={'green'} color={'white'}>Post Bid</Button>
+                        <Button onClick={openBidModal} background={'green'} color={'white'}>Post Bid</Button>
                         <Modal
-                          isOpen={isOpen}
-                          onClose={onClose}
-                          initialFocusRef={initialRef}
-                          finalFocusRef={finalRef}
+                            isOpen={isBidModalOpen}
+                            onClose={closeBidModal}
+                            initialFocusRef={initialRef}
+                            finalFocusRef={finalRef}
                         >
                           <ModalOverlay />
                           <ModalContent>
@@ -421,9 +459,9 @@ export default function JobDetails({ isSignedIn, wallet , contractId}) {
                             </ModalBody>
                             <ModalFooter>
                               <Button colorScheme="blue" mr={3} onClick={handleSubmitBid}>
-                                Post
+                                Post 
                               </Button>
-                              <Button onClick={onClose}>Cancel</Button>
+                              <Button onClick={closeBidModal}>Cancel</Button>
                             </ModalFooter>
                           </ModalContent>
                         </Modal>
@@ -451,6 +489,7 @@ export default function JobDetails({ isSignedIn, wallet , contractId}) {
           <TabPanel>
           {Object.keys(bids).map((bid, index) => (
           <Box
+            key={bid.bid_id} 
             display="flex"
             flex="1"
             flexDirection="column"
@@ -498,12 +537,12 @@ export default function JobDetails({ isSignedIn, wallet , contractId}) {
           </TabPanel>
           <TabPanel>
           <>
-            <Button onClick={onOpen} background={'green'} color={'white'}>Add Milestone</Button>
+            <Button onClick={openMilestoneModal} background={'green'} color={'white'}>Add Milestone</Button>
               <Modal
-                    isOpen={isOpen}
-                    onClose={onClose}
-                    initialFocusRef={initialRef}
-                    finalFocusRef={finalRef}
+                  isOpen={isMilestoneModalOpen}
+                  onClose={closeMilestoneModal}
+                  initialFocusRef={initialRef}
+                  finalFocusRef={finalRef}
                   >
                     <ModalOverlay />
                     <ModalContent>
@@ -559,7 +598,7 @@ export default function JobDetails({ isSignedIn, wallet , contractId}) {
                         <Button colorScheme="blue" mr={3} onClick={handleSubmitMilestone}>
                           Post
                         </Button>
-                        <Button onClick={onClose}>Cancel</Button>
+                        <Button onClick={closeMilestoneModal}>Cancel</Button>
                       </ModalFooter>
                     </ModalContent>
                   </Modal>
