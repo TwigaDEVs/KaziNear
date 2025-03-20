@@ -79,6 +79,7 @@ const closeMilestoneModal = () => {
 
   const [job, setJob] = useState([]);
   const [bids, setBids] = useState([]);
+  const [milestones, setMilestones] = useState([]);
 
 
   const params = useParams();
@@ -96,6 +97,7 @@ const closeMilestoneModal = () => {
   
     getJob().then(setJob);
     getBids().then(setBids);
+    getMilestones().then(setMilestones)
 
   }
   , []);
@@ -238,7 +240,7 @@ const closeMilestoneModal = () => {
         });
       
     setFormData(updatedFormData);
-    onClose(); // Close the modal after posting the job
+    closeBidModal(); // Close the modal after posting the job
   };
 
 
@@ -264,7 +266,7 @@ const closeMilestoneModal = () => {
         setUiPleaseWait(false);
         });
     
-    onClose(); // Close the modal after posting the job
+    closeMilestoneModal(); // Close the modal after posting the job
   };
 
 
@@ -272,6 +274,18 @@ const closeMilestoneModal = () => {
     // Call the NEAR Protocol function to post the job
     // await postJobToSmartContract(formData);
     // const jsonData = JSON.stringify(updatedFormData);
+
+  //   pub struct ProjectMilestone {
+  //     pub job_id:u128,
+  //     pub bid_id: u128,
+  //     pub milestone_id: u128,
+  //     pub milestone_name: String,
+  //     pub milestone_description: String,
+  //     pub milestone_budget: u128,
+  //     pub milestone_duration: u128,
+  //     pub milestone_work_approved: bool,
+  // }
+  
 
         const cleanMilestone = {
           job_id: Number(formDataMilestone.job_id),
@@ -295,6 +309,31 @@ const closeMilestoneModal = () => {
         contractId:contractId
         })
         .then(async () => {
+        return getMilestones();
+        })
+        .then(setMilestones)
+        .finally(() => {
+        setUiPleaseWait(false);
+        });
+    
+    closeMilestoneModal(); // Close the modal after posting the job
+  };
+
+
+  const handleApproveMilestone = async (milestone_id) => {
+    // Call the NEAR Protocol function to post the job
+    // await postJobToSmartContract(formData);
+    // const jsonData = JSON.stringify(updatedFormData);
+
+        wallet
+        .callMethod({
+        method: "approve_milestone",
+        args: {
+          milestone_id: milestone_id
+        },
+        contractId:contractId
+        })
+        .then(async () => {
         return getBids();
         })
         .then(setBids)
@@ -305,6 +344,7 @@ const closeMilestoneModal = () => {
     onClose(); // Close the modal after posting the job
   };
 
+
   function getBids() {
 		console.log(contractId)
     const job_id = Number(params.id);
@@ -312,8 +352,15 @@ const closeMilestoneModal = () => {
 	
 	  }
 
+  function getMilestones(){
+    const job_id = Number(params.id);
+    //get_project_milestones_by_job
+    return wallet.viewMethod({ method: "get_project_milestones_by_job", args: {job_id:job_id}, contractId});
+  }
+
   console.log(job);
   console.log("Bids",bids);
+  console.log("Milestones",milestones);
 
   return (
     <Container maxW={'7xl'}>
@@ -483,7 +530,7 @@ const closeMilestoneModal = () => {
       <Tabs index={selectedTab} onChange={handleTabChange}>
         <TabList>
           <Tab _selected={{ color: 'white', bg: 'blue.500' }} color={'black'}>Bids</Tab>
-          <Tab _selected={{ color: 'white', bg: 'blue.500' }} isDisabled color={'black'}></Tab>
+          <Tab _selected={{ color: 'white', bg: 'blue.500' }}  color={'black'}>Milestones</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -603,6 +650,59 @@ const closeMilestoneModal = () => {
                     </ModalContent>
                   </Modal>
                         </>
+                  {Object.keys(milestones).map((milestone, index) => (
+                    <Box
+                      key={milestones[milestone].milestone_id}
+                      display="flex"
+                      flex="1"
+                      flexDirection="column"
+                      justifyContent="center"
+                      marginTop={{ base: '3', sm: '3', md: '3', lg: '3' }}>
+                      <BidTag tags={[(milestones[milestone].milestone_budget + ' Near')]} />
+                      <Text
+                        as="p"
+                        marginTop="2"
+                        color={useColorModeValue('gray.700', 'gray.200')}
+                        fontSize="lg">
+                        {milestones[milestone].milestone_name}
+                      </Text>
+                      <Text
+                        as="p"
+                        color={useColorModeValue('gray.600', 'gray.300')}
+                        fontSize="md">
+                        {milestones[milestone].milestone_description}
+                      </Text>
+                      <Text
+                        as="p"
+                        color={useColorModeValue('gray.500', 'gray.400')}
+                        fontSize="sm">
+                        Duration: {milestones[milestone].milestone_duration} days
+                      </Text>
+                      {milestones[milestone].milestone_work_approved ? (
+                        <>
+                          <span style={{paddingLeft:'3'}}>
+                            <Badge colorScheme='green'>completed</Badge>
+                          </span>
+                        </>
+                      ) : (
+                        job.account_id === wallet.accountId ? (
+                          <>
+                            <span style={{paddingLeft:'3'}}>
+                              <Button onClick={() => handleApproveMilestone(milestones[milestone].milestone_id)}>
+                                Approve Milestone
+                              </Button>
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span style={{paddingLeft:'3'}}>
+                              <Badge colorScheme='yellow'>in progress</Badge>
+                            </span>
+                          </>
+                        )
+                      )}
+                    </Box>
+                  ))}
           </TabPanel>
         </TabPanels>
       </Tabs>

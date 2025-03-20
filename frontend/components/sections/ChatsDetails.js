@@ -148,6 +148,9 @@ export default function ChatsDetails({ isSignedIn, wallet ,contractId}) {
   }
 
 
+
+
+
   // function getChat() {
   //   console.log(contractId)
   //   // const chat_account = params.id;
